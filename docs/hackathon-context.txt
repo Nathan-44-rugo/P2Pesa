@@ -1,0 +1,120 @@
+Welcome to the Bitcoin++ Open Source Edition Hackathon!
+
+This is the hackathon site for the bitcoin++ open source edition hackathon in Nairobi, Kenya.
+
+The main hackathon competition will be open ended (overall 1st, 2nd, 3rd). Anything involving bitcoin is fair game. Bonus points for FOSS projects.
+
+There are optional challenges that hackers may create projects around. Submitting for a challenge is optional, and ALL projects will be considered for the main competition.
+
+
+
+Logistics 
+ 
+
+Wednesday (6/17/26)
+Kickoff Presentation: 3:00 PM (GMT+03:00)
+Hacking Begins: 4:00 PM
+
+Thursday (6/18/26)
+Submission Deadline: 1:00 PM - On Devpost
+Report to Expo: 1:15 PM
+Judging Expo: 1:30 PM - 3:30 PM - MAX 3 minutes (practice & time yourself)
+
+
+Friday (6/19/26)
+Finalist Presentations: 2:30 - 3:30 PM - 5 minutes per team (main stage)
+Awards & Closing: 5:00 PM
+
+Requirements
+Project Submission
+All teams must submit their projects on Devpost (this site). Do this early so you don't forget.
+
+Judges will primarily use the presentations to select winners. They may reference your Devpost sumbissions as well.
+
+This event will judged using a science fair expo format. Judges will walk around and adjudicate projects in parallel.
+
+Finalists will present on stage.
+
+
+Judging Criteria
+To judge hackathon projects, we follow the global standard for performance-based judging: the Olympics Women’s Gymnastics Rubric. Judges will be evaluating each hackathon team’s performance based on the following criteria:
+- Routine Difficulty: Project idea, Potential impact of project, ambition
+- Routine Execution: Project achievement, What you actually built, Does it work
+ - General Effect: Swag Factor, Presentation, Applicability to theme
+
+Prizes
+$5,530+ in cryptocurrency+ other prizes
+1st Overall
+Cryptocurrency logo
+$1,650 of Bitcoin 
+1 winner
+2.5 Million Satoshis + Tickets to future Bitcoin++ event
+
+2nd Overall
+Cryptocurrency logo
+$1,000 of Bitcoin 
+1 winner
+1.5 Million Satoshis + Tickets to future Bitcoin++ event
+
+3rd Overall
+Cryptocurrency logo
+$650 of Bitcoin 
+1 winner
+1 Million Satoshis + Tickets to future Bitcoin++ event
+
+Best Beginner Hack
+1 winner
+Tickets to future Bitcoin++ event - Only eligible to teams where EVERY member is a high-school/undergraduate student OR a first-time contributor to open-source bitcoin.
+
+Honorable Mentions
+6 winners
+Tickets to future Bitcoin++ event - Awarded to up to 6 "honorable mentions"
+
+Best use of Soapbox
+Cryptocurrency logo
+$650 of Bitcoin 
+1 winner
+1M Satoshis - Soapbox builds open-source tools for social media, AI development, activism, and the decentralized web. This prize will be awarded to the team with the best use of Soapbox technology to build an open, user-owned, censorship-resistant app, community tool, or Bitcoin-enabled experience. Learn more at https://canva.link/wy5s2n45dkquwb6
+
+Powered by Soapbox https://soapbox.pub/.
+
+Best Contribution to Open Source
+Cryptocurrency logo
+$650 of Bitcoin 
+1 winner
+1M Satoshis - Bitcoin is built in the open. This prize will be awarded to the team that makes the most meaningful pull request into an existing open-source Bitcoin project during the hackathon. Contributions can include code, tests, documentation, developer tooling, design, UX, infrastructure, or anything else that helps a real project move forward.
+
+Powered by Btrust.https://www.btrust.tech/
+
+Solve Open Source Contribution Spam
+Cryptocurrency logo
+$650 of Bitcoin 
+1 winner
+1M Satoshis - Open-source maintainers are increasingly dealing with low-quality and AI-generated pull request spam. This prize will be awarded to the team that builds the best tool, workflow, policy, or protocol for helping maintainers stop spam while still welcoming serious new contributors. Projects can focus on PR quality checks, maintainer triage, contributor reputation, automated review, proof-of-work, issue claiming, or other approaches.
+
+Powered by Btrust. https://www.btrust.tech/
+
+Best use of Pontmore
+Cryptocurrency logo
+$140 of Bitcoin 
+1 winner
+210,000 Satoshis - Pontmore is a Nostr-native protocol for coordinating Bitcoin-fiat swaps, (human) agent discovery, escrow assumptions, swap state, and dispute resolution across open rails. This prize will be awarded to the team with the best use of Pontmore to build wallets, (human) agent tools, swap interfaces, indexers, dispute systems, SDKs, or other infrastructure for open Bitcoin-fiat exchange. Learn more at https://pontmore.xyz/
+
+Powered by Minmo. https://minmo.to
+
+Best Tool for Mobile Money brokers/agents using Bitcoin
+Cryptocurrency logo
+$140 of Bitcoin 
+1 winner
+210,000 Satoshis - Mobile money agents (human) are often the human layer that makes financial access work in local communities. This prize will be awarded to the team that builds the best Bitcoin tool for mobile money brokers or agents, helping them manage swaps, liquidity, customer requests, transaction history, disputes, accounting, pricing, or local on/off-ramp workflows.
+
+Powered by Minmo. https://minmo.to/
+
+Judging Criteria
+
+Routine Difficulty
+Quality of your Project Idea. Potential impact of your idea. Ambition/scope of the project (given the short deadline).
+Routine Execution
+Project achievement. What you actually built. Does it work? Were you able to solve the problem you set out to solve?
+General Effect
+Swag Factor, Presentation, Applicability to theme (open source)
