@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "humanize": {
+      "source": "humanizerai/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/humanize/SKILL.md",
+      "computedHash": "0c272016e5734530bf8604533aee2f293444c5d3b3e83eb234b1d65534159160"
+    },
+    "humanizer": {
+      "source": "blader/humanizer",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "3545d1938bc805119fd31618cb1bc617081b3b0eb4f600e306a7c011438fd73b"
+    }
+  }
+}

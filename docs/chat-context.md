@@ -1,10 +1,10 @@
-# AgentTrust — Chat Context & Project Definition
+# P2Pesa — Chat Context & Project Definition
 
 **Date:** 2026-06-17
 **Project Status:** Ideation Phase (Complete) -> Technical Research Phase (Active)
 
 ## Project Vision
-AgentTrust is a decentralized reputation and verification platform for Bitcoin and mobile money agents in Kenya. It replaces informal trust with cryptographically verifiable, community-backed reputation.
+P2Pesa is a decentralized reputation and verification platform for Bitcoin and mobile money agents in Kenya. It replaces informal trust with cryptographically verifiable, community-backed reputation.
 
 ## Core Pillars
 

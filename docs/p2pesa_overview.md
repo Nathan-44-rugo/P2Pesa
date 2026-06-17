@@ -1,8 +1,8 @@
-# AgentTrust — Project Overview
+# P2Pesa — Project Overview
 
 ## What It Is
 
-AgentTrust is a decentralized reputation and verification platform for Bitcoin and mobile money agents. It gives users a way to evaluate the trustworthiness of a human agent before initiating a Bitcoin or fiat swap — replacing informal word-of-mouth trust (WhatsApp groups, Telegram, referrals) with cryptographically verifiable, community-backed reputation.
+P2Pesa is a decentralized reputation and verification platform for Bitcoin and mobile money agents. It gives users a way to evaluate the trustworthiness of a human agent before initiating a Bitcoin or fiat swap — replacing informal word-of-mouth trust (WhatsApp groups, Telegram, referrals) with cryptographically verifiable, community-backed reputation.
 
 **One-line pitch:** "Uber ratings for Bitcoin agents — but decentralized, open-source, and Bitcoin-native."
 
@@ -33,7 +33,7 @@ Currently, no universal trust layer exists. Users rely entirely on social proof 
 
 ## The Solution
 
-AgentTrust creates a **public, verifiable profile** for every agent. Each profile surfaces:
+P2Pesa creates a **public, verifiable profile** for every agent. Each profile surfaces:
 
 | Field | Description |
 |---|---|

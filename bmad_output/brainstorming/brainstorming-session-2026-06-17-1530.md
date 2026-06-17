@@ -1,7 +1,7 @@
 ---
 stepsCompleted: [1, 2]
 inputDocuments: []
-session_topic: 'Bitcoin-enabled social financial tools for the Kenyan market, focusing on trust and agent liquidity.'
+session_topic: 'P2Pesa: Bitcoin-enabled social financial tools for the Kenyan market, focusing on trust and agent liquidity.'
 session_goals: 'MVP that integrates Nostr/Soapbox with Bitcoin to solve local trust and financial access problems.'
 selected_approach: 'hybrid (ai-recommended + user-selected)'
 techniques_used: ['First Principles Thinking', 'Role Playing', 'SCAMPER Method']
@@ -16,7 +16,7 @@ context_file: 'docs/hackathon-context.txt'
 
 ## Session Overview
 
-**Topic:** Bitcoin-enabled social financial tools for the Kenyan market, focusing on trust and agent liquidity.
+**Topic:** P2Pesa: Bitcoin-enabled social financial tools for the Kenyan market, focusing on trust and agent liquidity.
 **Goals:** MVP that integrates Nostr/Soapbox with Bitcoin to solve local trust and financial access problems.
 
 ### Context Guidance
