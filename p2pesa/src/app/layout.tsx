@@ -2,11 +2,10 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { NostrAuthProvider } from '@/context/NostrAuthContext';
 import { Navbar } from '@/components/shared/Navbar';
-
 export const metadata: Metadata = {
   title: 'P2Pesa — Decentralized Reputation for Bitcoin Agents',
   description:
-    'P2Pesa is a trustless reputation layer for Bitcoin and mobile money agents in Kenya. Verify identity via Nostr, prove liquidity via Bitcoin wallet signatures, and earn community trust through Zap-backed reviews.',
+    'P2Pesa is a trustless reputation layer for Bitcoin and mobile money agents in Kenya. Verify identity via Nostr, prove liquidity via Bitcoin wallet signatures, and earn community trust through Zap-backedreviews.',
   keywords: [
     'Bitcoin',
     'Nostr',
@@ -24,7 +23,6 @@ export const metadata: Metadata = {
     type: 'website',
   },
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{
