@@ -38,12 +38,14 @@ export function parseKind0Content(
   try {
     const data = JSON.parse(contentJson) as Record<string, string>;
     const npub = nip19.npubEncode(pubkey);
+    const displayNameVal = data.display_name ?? data.displayName ?? undefined;
 
     return {
       pubkey,
       npub,
       name: data.name ?? undefined,
-      displayName: data.display_name ?? data.displayName ?? undefined,
+      displayName: displayNameVal,
+      display_name: displayNameVal,
       picture: data.picture ?? undefined,
       about: data.about ?? undefined,
       website: data.website ?? undefined,
@@ -110,6 +112,7 @@ function silentBackgroundFetch(pubkey: string): void {
 export function getDisplayName(profile: NostrProfile): string {
   return (
     profile.displayName ??
+    profile.display_name ??
     profile.name ??
     `${profile.npub.slice(0, 8)}...${profile.npub.slice(-4)}`
   );
