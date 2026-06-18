@@ -205,7 +205,7 @@ export async function completeWalletVerification(
   const sigCheck = await verifyBitcoinSignature(address, signature, challenge);
   if (sigCheck.error || !sigCheck.data) {
     return {
-      data: { status: 'failed' },
+      data: { address, status: 'failed' },
       error: sigCheck.error ?? 'Signature is invalid.',
     };
   }
@@ -214,7 +214,7 @@ export async function completeWalletVerification(
   const balance = await fetchWalletBalance(address);
   if (balance.error || balance.data === null) {
     return {
-      data: { status: 'failed' },
+      data: { address, status: 'failed' },
       error: balance.error ?? 'Could not fetch address balance.',
     };
   }
@@ -224,7 +224,6 @@ export async function completeWalletVerification(
       status: 'verified',
       address: address.trim(),
       balanceSats: balance.data,
-      signature: signature.trim(),
       verifiedAt: Date.now(),
     },
     error: null,
