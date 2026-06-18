@@ -5,13 +5,17 @@
 // Full agent profile view — stitches Nathan's profile card + Francis's wallet data
 // + Rico's trust score + Daisy's reviews section
 
-import React, { useState } from 'react';
-import { AgentProfile, Review } from '@/types/nostr';
+import React, { useState, useEffect, useMemo } from 'react';
+import { AgentProfile, PaymentMethod, Review, AgentReview, WalletVerification } from '@/types/nostr';
 import TrustScoreRing from '@/components/ui/TrustScoreRing';
 import StarRating from '@/components/ui/StarRating';
 import PaymentMethodBadge from '@/components/ui/PaymentMethodBadge';
 import ReviewCard from '@/features/reviews/ReviewCard';
 import ReviewSubmitForm from '@/features/reviews/ReviewSubmitForm';
+import { WalletVerificationStub } from '@/features/agents/WalletVerificationStub';
+import { npubToPubkey, pubkeyToNpub } from '@/lib/nostr';
+import { fetchAgentReviewEvents } from '@/lib/reputationRelay';
+import { parseReviewEvent, calculateTrustScore } from '@/lib/reputation';
 
 interface AgentProfileFullProps {
   agent: AgentProfile;
@@ -27,20 +31,115 @@ function formatSats(sats: number): string {
   return sats.toLocaleString();
 }
 
+function mapAgentReviewToReview(r: AgentReview): Review {
+  return {
+    id: r.id ?? `${r.reviewerPubkey}-${r.createdAt}`,
+    agentNpub: pubkeyToNpub(r.agentPubkey),
+    reviewerNpub: pubkeyToNpub(r.reviewerPubkey),
+    rating: r.rating,
+    content: r.comment,
+    zapAmountSats: Math.floor(r.zapAmountMsats / 1000),
+    zapVerified: r.zapAmountMsats >= 1000,
+    createdAt: r.createdAt,
+    nostrEventId: r.id,
+  };
+}
+
+function mapReviewToAgentReview(r: Review): AgentReview {
+  return {
+    id: r.id,
+    agentPubkey: npubToPubkey(r.agentNpub).data ?? r.agentNpub,
+    reviewerPubkey: npubToPubkey(r.reviewerNpub).data ?? r.reviewerNpub,
+    rating: r.rating,
+    comment: r.content,
+    zapReceiptId: r.id,
+    zapAmountMsats: (r.zapAmountSats ?? 0) * 1000,
+    createdAt: r.createdAt < 10000000000 ? r.createdAt : Math.floor(r.createdAt / 1000),
+  };
+}
+
 export default function AgentProfileFull({ agent, reviews, isOwnProfile = false }: AgentProfileFullProps) {
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [localReviews, setLocalReviews] = useState<Review[]>(reviews);
+  const [localWalletVerification, setLocalWalletVerification] = useState<WalletVerification | undefined>(agent.walletVerification || agent.wallet);
+  const [relayReviews, setRelayReviews] = useState<Review[]>([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  const [relayError, setRelayError] = useState<string | null>(null);
 
-  const { nostrProfile, walletVerification, trustScore, location, paymentMethods } = agent;
+  const { nostrProfile, location, paymentMethods } = agent;
   const name = nostrProfile.display_name || nostrProfile.name || 'Unknown Agent';
-  const score = trustScore?.total ?? 0;
-  const trades = trustScore?.tradeCount ?? 0;
-  const disputes = trustScore?.disputeCount ?? 0;
-  const zapVolume = trustScore?.zapVolumeSats ?? 0;
+
+  useEffect(() => {
+    const { data: agentPubkey } = npubToPubkey(agent.npub);
+    if (!agentPubkey) return;
+
+    let cancelled = false;
+    setIsLoadingReviews(true);
+    setRelayError(null);
+
+    fetchAgentReviewEvents(agentPubkey).then((result) => {
+      if (cancelled) return;
+
+      if (result.error) {
+        setRelayError(result.error);
+      }
+
+      const parsed = (result.data ?? [])
+        .map((event) => parseReviewEvent(event).data)
+        .filter((review): review is AgentReview => Boolean(review))
+        .map(mapAgentReviewToReview);
+
+      setRelayReviews(parsed);
+      setIsLoadingReviews(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [agent.npub]);
+
+  const mergedReviews = useMemo<Review[]>(() => {
+    const byId = new Map<string, Review>();
+    for (const r of reviews) {
+      byId.set(r.id, r);
+    }
+    for (const r of relayReviews) {
+      byId.set(r.id, r);
+    }
+    return Array.from(byId.values()).sort((a, b) => b.createdAt - a.createdAt);
+  }, [reviews, relayReviews]);
+
+  const computedTrustScore = useMemo(() => {
+    const agentReviews = mergedReviews.map(mapReviewToAgentReview);
+    return calculateTrustScore(agentReviews, localWalletVerification);
+  }, [mergedReviews, localWalletVerification]);
+
+  const score = computedTrustScore.score ?? 0;
+  const trades = computedTrustScore.verifiedTradeCount ?? 0;
+  const disputes = agent.trustScore?.disputeCount ?? 0;
+  const zapVolume = computedTrustScore.totalZapSats ?? 0;
+
+  const computedBreakdown = {
+    walletScore: (computedTrustScore.verifiedTradeCount ?? 0) * 15,
+    reviewScore: Math.round((computedTrustScore.averageRating ?? 0) * 12),
+    attestationScore: Math.min(25, Math.round(Math.log10((computedTrustScore.totalZapSats ?? 0) + 1) * 10)),
+    disputePenalty: 0,
+    accountAge: 0,
+  };
 
   function handleReviewSuccess() {
     setShowReviewForm(false);
-    // TODO (Rico — Story 2.1): refetch reviews from Nostr relay after publish
+    const { data: agentPubkey } = npubToPubkey(agent.npub);
+    if (agentPubkey) {
+      setIsLoadingReviews(true);
+      fetchAgentReviewEvents(agentPubkey).then((result) => {
+        const parsed = (result.data ?? [])
+          .map((event) => parseReviewEvent(event).data)
+          .filter((review): review is AgentReview => Boolean(review))
+          .map(mapAgentReviewToReview);
+        setRelayReviews(parsed);
+        setIsLoadingReviews(false);
+      });
+    }
   }
 
   return (
@@ -66,7 +165,7 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
                   {name.charAt(0).toUpperCase()}
                 </div>
               )}
-              {walletVerification?.status === 'verified' && (
+              {localWalletVerification?.status === 'verified' && (
                 <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold border-2 border-gray-900" title="Bitcoin wallet verified">✓</span>
               )}
             </div>
@@ -86,7 +185,7 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
             </div>
 
             {/* Trust score */}
-            <TrustScoreRing score={score} size="lg" breakdown={trustScore?.breakdown} />
+            <TrustScoreRing score={score} size="lg" breakdown={computedBreakdown} />
           </div>
 
           {/* Bio */}
@@ -99,7 +198,7 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
             <div className="flex items-center gap-2 mt-4 flex-wrap">
               <span className="text-xs text-gray-600 uppercase tracking-wider font-semibold">Accepts</span>
               {paymentMethods.map((m) => (
-                <PaymentMethodBadge key={m} method={m as any} />
+                <PaymentMethodBadge key={m} method={m as PaymentMethod} />
               ))}
             </div>
           )}
@@ -110,7 +209,7 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: 'Trades', value: trades, accent: false },
-          { label: 'Reviews', value: localReviews.length, accent: false },
+          { label: 'Reviews', value: mergedReviews.length, accent: false },
           { label: 'Disputes', value: disputes, accent: disputes > 0 },
         ].map(({ label, value, accent }) => (
           <div key={label} className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 text-center">
@@ -125,31 +224,31 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
       {/* ── Wallet verification ── */}
       <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 space-y-3">
         <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Bitcoin wallet</h2>
-        {walletVerification ? (
+        {localWalletVerification ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">Status</span>
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                walletVerification.status === 'verified'
+                localWalletVerification.status === 'verified'
                   ? 'bg-green-500/10 text-green-400 border border-green-500/20'
                   : 'bg-gray-800 text-gray-500'
               }`}>
-                {walletVerification.status === 'verified' ? '✓ Cryptographically verified' : 'Unverified'}
+                {localWalletVerification.status === 'verified' ? '✓ Cryptographically verified' : 'Unverified'}
               </span>
             </div>
-            {walletVerification.balanceSats != null && (
+            {localWalletVerification.balanceSats != null && (
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">On-chain balance</span>
                 <span className="text-sm font-mono font-semibold text-amber-400">
-                  {formatBtc(walletVerification.balanceSats)} BTC
-                  <span className="text-gray-600 font-normal text-xs ml-1">({formatSats(walletVerification.balanceSats)} sats)</span>
+                  {formatBtc(localWalletVerification.balanceSats)} BTC
+                  <span className="text-gray-600 font-normal text-xs ml-1">({formatSats(localWalletVerification.balanceSats)} sats)</span>
                 </span>
               </div>
             )}
-            {walletVerification.address && (
+            {localWalletVerification.address && (
               <div className="flex items-center justify-between gap-4">
                 <span className="text-xs text-gray-500 flex-shrink-0">Address</span>
-                <span className="text-[11px] font-mono text-gray-500 truncate">{walletVerification.address}</span>
+                <span className="text-[11px] font-mono text-gray-500 truncate">{localWalletVerification.address}</span>
               </div>
             )}
             <p className="text-[11px] text-gray-600 pt-1">
@@ -160,6 +259,14 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
           <p className="text-sm text-gray-600">Wallet not yet verified.</p>
         )}
       </div>
+
+      {/* ── Deferred Wallet Verification Stub for Own Profile ── */}
+      {isOwnProfile && localWalletVerification?.status !== 'verified' && (
+        <WalletVerificationStub
+          npub={agent.npub}
+          onVerified={(v) => setLocalWalletVerification(v)}
+        />
+      )}
 
       {/* ── Zap activity ── */}
       {zapVolume > 0 && (
@@ -180,8 +287,14 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">
-            Reviews ({localReviews.length})
+            Reviews ({mergedReviews.length})
           </h2>
+          {isLoadingReviews && (
+            <span className="text-xs text-gray-500 animate-pulse">Syncing relays…</span>
+          )}
+          {relayError && (
+            <span className="text-xs text-brand-orange" title={relayError}>⚠️ Relay fallback active</span>
+          )}
           {!isOwnProfile && (
             <button
               type="button"
@@ -201,9 +314,9 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
           />
         )}
 
-        {localReviews.length > 0 ? (
+        {mergedReviews.length > 0 ? (
           <div className="space-y-3">
-            {localReviews.map((review) => (
+            {mergedReviews.map((review) => (
               <ReviewCard key={review.id} review={review} />
             ))}
           </div>

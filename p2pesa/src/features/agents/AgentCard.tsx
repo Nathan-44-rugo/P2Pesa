@@ -6,7 +6,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { AgentProfile } from '@/types/nostr';
+import { AgentProfile, ReviewRating } from '@/types/nostr';
 import TrustScoreRing from '@/components/ui/TrustScoreRing';
 import PaymentMethodBadge from '@/components/ui/PaymentMethodBadge';
 import StarRating from '@/components/ui/StarRating';
@@ -65,7 +65,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
           <div className="flex items-center gap-3 mt-2 flex-wrap">
             {reviews > 0 && (
               <div className="flex items-center gap-1">
-                <StarRating value={Math.round(rating) as any} readonly size="sm" />
+                <StarRating value={Math.round(rating) as ReviewRating} readonly size="sm" />
                 <span className="text-[11px] text-gray-500">({reviews})</span>
               </div>
             )}
@@ -89,7 +89,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
               </span>
             )}
             {paymentMethods?.map((m) => (
-              <PaymentMethodBadge key={m} method={m as any} />
+              <PaymentMethodBadge key={m} method={m} />
             ))}
           </div>
         </div>

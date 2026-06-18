@@ -38,16 +38,16 @@ export interface WalletVerification {
 }
 
 export interface AgentProfile {
-  npub?: string;
+  npub: string;
   nostr?: NostrProfile;
   wallet?: WalletVerification;
-  nostrProfile?: NostrProfile;
+  nostrProfile: NostrProfile;
   walletVerification?: WalletVerification;
   trustScore?: TrustScore;
   reviews?: Review[];
   location?: string;
   languages?: string[];
-  paymentMethods?: string[];
+  paymentMethods?: PaymentMethod[];
 }
 
 export interface TrustScore {

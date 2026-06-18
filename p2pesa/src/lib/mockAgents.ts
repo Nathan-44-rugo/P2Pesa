@@ -1,7 +1,7 @@
 // src/lib/mockAgents.ts
 // Demo seed data for hackathon — replaced by live Nostr relay indexer (Rico, Story 2.2)
 
-import { AgentProfile } from '@/types/nostr';
+import { AgentProfile, PaymentMethod } from '@/types/nostr';
 
 export const MOCK_AGENTS: AgentProfile[] = [
   {
@@ -155,7 +155,7 @@ export function searchAgents(
   agents: AgentProfile[],
   query: string,
   minScore: number,
-  paymentMethods: string[],
+  paymentMethods: PaymentMethod[],
   sortBy: string
 ): AgentProfile[] {
   let results = agents.filter((a) => {
@@ -168,7 +168,7 @@ export function searchAgents(
     const matchesScore = (a.trustScore?.total ?? 0) >= minScore;
     const matchesPayment =
       paymentMethods.length === 0 ||
-      paymentMethods.some((m) => a.paymentMethods?.includes(m as any));
+      paymentMethods.some((m) => a.paymentMethods?.includes(m));
 
     return matchesQuery && matchesScore && matchesPayment;
   });

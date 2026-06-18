@@ -123,15 +123,13 @@ export default function TrustScoreRing({
         <div className="absolute top-full mt-2 z-50 w-48 bg-gray-900 border border-gray-700 rounded-xl p-3 shadow-2xl text-xs text-gray-300">
           <p className="text-gray-400 mb-2 font-semibold uppercase tracking-wider text-[10px]">Score breakdown</p>
           {[
-            { label: 'Wallet activity', val: breakdown.walletScore, max: 35 },
-            { label: 'Reviews', val: breakdown.reviewScore, max: 30 },
-            { label: 'Trade attestations', val: breakdown.attestationScore, max: 20 },
-            { label: 'Account age', val: breakdown.accountAge, max: 15 },
-            { label: 'Disputes', val: breakdown.disputePenalty, max: 0, negative: true },
-          ].map(({ label, val, max, negative }) => (
+            { label: 'Wallet verification', val: breakdown.walletScore, max: 15 },
+            { label: 'Zap reviews', val: breakdown.reviewScore, max: 60 },
+            { label: 'Zap volume', val: breakdown.attestationScore, max: 25 },
+          ].map(({ label, val, max }) => (
             <div key={label} className="flex items-center justify-between gap-2 mb-1">
               <span className="text-gray-400 truncate">{label}</span>
-              <span className={negative && val < 0 ? 'text-red-400 font-mono' : 'text-gray-200 font-mono'}>
+              <span className="text-gray-200 font-mono">
                 {val > 0 ? '+' : ''}{val}
                 {max > 0 && <span className="text-gray-600">/{max}</span>}
               </span>

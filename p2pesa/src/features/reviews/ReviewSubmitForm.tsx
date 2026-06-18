@@ -7,6 +7,10 @@
 import React, { useState } from 'react';
 import { ReviewRating, ReviewSubmission } from '@/types/nostr';
 import StarRating from '@/components/ui/StarRating';
+import { useNostrAuth } from '@/hooks/useNostrAuth';
+import { npubToPubkey } from '@/lib/nostr';
+import { parseZapReceipt, createUnsignedReviewEvent } from '@/lib/reputation';
+import { signAndPublishReviewEvent } from '@/lib/reputationRelay';
 
 interface ReviewSubmitFormProps {
   agentNpub: string;
@@ -19,43 +23,71 @@ type Step = 'compose' | 'zap' | 'submitting' | 'done' | 'error';
 const ZAP_PRESETS = [500, 1000, 2100, 5000];
 
 export default function ReviewSubmitForm({ agentNpub, agentName, onSubmitSuccess }: ReviewSubmitFormProps) {
+  const { auth } = useNostrAuth();
   const [step, setStep] = useState<Step>('compose');
   const [rating, setRating] = useState<ReviewRating | 0>(0);
   const [content, setContent] = useState('');
   const [zapAmount, setZapAmount] = useState(1000);
   const [customZap, setCustomZap] = useState('');
+  const [zapReceiptJson, setZapReceiptJson] = useState('');
   const [error, setError] = useState('');
 
   const MIN_CONTENT = 20;
   const MIN_ZAP = 100;
 
-  const canProceed = rating > 0 && content.trim().length >= MIN_CONTENT;
+  const canProceed = rating > 0 && content.trim().length >= MIN_CONTENT && zapReceiptJson.trim().length > 0;
   const finalZapAmount = customZap ? parseInt(customZap, 10) : zapAmount;
 
   async function handleZapAndSubmit() {
+    if (!auth.pubkey) {
+      setError('Log in with Nostr before submitting a verified review.');
+      setStep('error');
+      return;
+    }
+
+    const { data: agentPubkey, error: decodeError } = npubToPubkey(agentNpub);
+    if (decodeError || !agentPubkey) {
+      setError(decodeError ?? 'Invalid agent npub.');
+      setStep('error');
+      return;
+    }
+
     setStep('submitting');
     setError('');
-    try {
-      // TODO (Rico — Story 2.1): replace with real Nostr zap + event publish
-      // 1. Trigger NIP-57 zap to agent's lud16 address
-      // 2. Wait for zap receipt event
-      // 3. Publish kind-1 or custom-NIP review event signed with reviewer's key
-      //
-      // Simulated for MVP demo:
-      await new Promise((res) => setTimeout(res, 1800));
 
-      const submission: ReviewSubmission = {
-        agentNpub,
+    try {
+      const zapReceiptResult = parseZapReceipt(zapReceiptJson, agentPubkey);
+      if (zapReceiptResult.error || !zapReceiptResult.data) {
+        setError(zapReceiptResult.error ?? 'Invalid zap receipt.');
+        setStep('error');
+        return;
+      }
+
+      const unsignedEventResult = createUnsignedReviewEvent({
+        agentPubkey,
+        reviewerPubkey: auth.pubkey,
         rating: rating as ReviewRating,
-        content: content.trim(),
-        zapAmountSats: finalZapAmount,
-      };
-      console.log('[P2Pesa] Review submitted (mock):', submission);
+        comment: content.trim(),
+        zapReceipt: zapReceiptResult.data,
+      });
+
+      if (unsignedEventResult.error || !unsignedEventResult.data) {
+        setError(unsignedEventResult.error ?? 'Could not create review event.');
+        setStep('error');
+        return;
+      }
+
+      const publishResult = await signAndPublishReviewEvent(unsignedEventResult.data);
+      if (publishResult.error || !publishResult.data) {
+        setError(publishResult.error ?? 'Could not publish review event.');
+        setStep('error');
+        return;
+      }
 
       setStep('done');
       onSubmitSuccess?.();
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       setStep('error');
     }
   }
@@ -152,8 +184,24 @@ export default function ReviewSubmitForm({ agentNpub, agentName, onSubmitSuccess
               </div>
             </div>
 
+            {/* NIP-57 Zap Receipt JSON */}
+            <div className="space-y-1.5">
+              <label htmlFor="zap-receipt" className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
+                NIP-57 Zap Receipt JSON
+              </label>
+              <textarea
+                id="zap-receipt"
+                rows={4}
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 font-mono text-xs text-gray-200 placeholder-gray-600 resize-none focus:outline-none focus:border-orange-500 transition-colors"
+                placeholder='{"kind":9735,"tags":[["p","agent-pubkey"],["amount","1000"]],...}'
+                value={zapReceiptJson}
+                onChange={(e) => setZapReceiptJson(e.target.value)}
+                disabled={step === 'submitting'}
+              />
+            </div>
+
             {/* Error */}
-            {step === 'error' && error && (
+            {(step === 'error' || error) && error && (
               <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
                 {error}
               </p>
