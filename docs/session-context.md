@@ -21,28 +21,24 @@ To ensure a smooth dependency flow, team members should tackle work in this orde
 *   **Focus:** `bitcoinjs-lib`, Bitcoin message signing, and Mempool.space API.
 *   **Priority:** #2 — Necessary to verify the identities registered in Phase 1.
 *   **Key Tasks:**
-    *   Implement the "Deferred Verification" signature flow for agents.
-    *   Verify Bitcoin wallet signatures cryptographically on the client side.
-    *   Integrate the Mempool.space API to fetch real-time liquidity/balances.
-    *   **Primary Story Coverage:** Story 1.2.
+    *   Build out the backend/mock architecture for the "Deferred Verification" signature flow.
+    *   Integrate simulated Mempool.space API logic to fetch demo balances.
+    *   **Primary Story Coverage:** Story 1.2 (Currently stubbed for hackathon demo).
 
 ### 3. Reputation & Protocol Lead (The "Brain" - Value-Add) - Rico
-*   **Focus:** Zap-Gating (NIP-57), Ingestion Worker, and Trust Score algorithm.
-*   **Priority:** #3 — Builds on verified identities.
+*   **Focus:** Zap-Gating (NIP-57) and Trust Score algorithm.
+*   **Priority:** #3 — Deferred to post-hackathon roadmap.
 *   **Key Tasks:**
-    *   Implement the "Invisible Zap-gate" (Lightning payment verification).
-    *   Develop the "Lightweight Nostr Indexer" (Ingestion Worker) to sync authoritative data.
-    *   Write the open-source Trust Score calculation logic.
-    *   **Primary Story Coverage:** Story 2.1, 2.2.
+    *   Designed the trust score algorithm architecture.
+    *   **Primary Story Coverage:** Story 2.1, 2.2 (Architectural design only for MVP).
 
 ### 4. Frontend & UI Lead (The "Shell" - Integration) - Daisy
-*   **Focus:** Soapbox UI integration, search, and final polishing.
-*   **Priority:** #4 — Orchestrates the final user journey by stitching the foundation and value-add components together.
+*   **Focus:** Premium Btrust styling and UI integration.
+*   **Priority:** #4 — Orchestrates the final presentation.
 *   **Key Tasks:**
-    *   Build the reusable UI components.
-    *   Build the Agent Profile Page + Review Submission UI.
-    *   Build the Agent Search/Filter interface.
-    *   **Primary Story Coverage:** Story 2.1, 3.1.
+    *   Implement premium UI overhaul based on `btrust.tech`.
+    *   Build the Agent Profile Page + Wallet Verification Stub UI.
+    *   **Primary Story Coverage:** UI/UX final touches.
 
 ## Project Resources
 *   **PRD:** `bmad_output/planning-artifacts/prd.md`

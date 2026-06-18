@@ -1,8 +1,7 @@
 'use client';
 
 // src/app/search/page.tsx
-// Daisy — Story 3.1
-// Agent discovery page
+// Polished Search Page with brand styling
 
 import React, { useMemo, useState } from 'react';
 import { AgentSearchFilters } from '@/types/nostr';
@@ -26,38 +25,45 @@ export default function SearchPage() {
   );
 
   return (
-    <main className="min-h-screen bg-black text-gray-100">
-      <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">Find a Bitcoin agent</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Browse verified P2P agents. Every trust score is computed from on-chain data and zap-backed reviews.
+    <main className="min-h-screen bg-brand-dark text-gray-100">
+      {/* Hero Header */}
+      <div className="bg-brand-surface/40 border-b border-brand-border py-12 mb-10">
+        <div className="max-w-2xl mx-auto px-4">
+          <h1 className="text-3xl font-bold text-white tracking-tight">Find an Agent</h1>
+          <p className="text-brand-muted text-sm mt-2 max-w-lg">
+            Discover verified P2P agents across Kenya. Reputation is mathematically secured by on-chain proofs and zap-backed reviews.
           </p>
         </div>
+      </div>
 
+      <div className="max-w-2xl mx-auto px-4 pb-20 space-y-10">
         {/* Filters */}
-        <AgentSearchFilter filters={filters} onChange={setFilters} resultCount={results.length} />
+        <div className="bg-brand-surface/60 border border-brand-border rounded-2xl p-6 shadow-xl">
+          <AgentSearchFilter filters={filters} onChange={setFilters} resultCount={results.length} />
+        </div>
 
         {/* Results */}
-        {results.length > 0 ? (
-          <div className="space-y-3">
-            {results.map((agent) => (
-              <AgentCard key={agent.npub} agent={agent} />
-            ))}
-          </div>
-        ) : (
-          <div className="border border-gray-800 border-dashed rounded-2xl p-12 text-center">
-            <p className="text-gray-500">No agents match your filters.</p>
-            <button
-              type="button"
-              className="mt-3 text-xs text-orange-400 hover:text-orange-300"
-              onClick={() => setFilters(DEFAULT_FILTERS)}
-            >
-              Clear filters
-            </button>
-          </div>
-        )}
+        <div className="space-y-4">
+          {results.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 animate-fade-in">
+              {results.map((agent) => (
+                <AgentCard key={agent.npub} agent={agent} />
+              ))}
+            </div>
+          ) : (
+            <div className="border border-brand-border border-dashed rounded-2xl p-16 text-center bg-brand-surface/20">
+              <div className="text-4xl mb-4 opacity-20">🔍</div>
+              <p className="text-brand-muted text-sm">No agents match your current filters.</p>
+              <button
+                type="button"
+                className="mt-4 text-xs font-mono-tech text-brand-orange hover:text-white uppercase tracking-wider transition-colors"
+                onClick={() => setFilters(DEFAULT_FILTERS)}
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

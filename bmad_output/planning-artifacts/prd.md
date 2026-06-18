@@ -28,10 +28,10 @@ P2Pesa is a decentralized reputation and verification platform for Bitcoin and m
 3. **Zap-Gated Reputation (The "Social" Layer):** Reviews/Vouches are only "Verified" if backed by a Nostr Zap (Lightning payment), making Sybil attacks economically irrational.
 4. **Platform/UX:** Soapbox open-source components used for social feed and reputation UX.
 
-## 3. MVP Scope
-1. **Agent Profile Page:** Displays Nostr ID, verified BTC balance, and Zap-backed reviews.
-2. **Review Flow:** Allows users to submit a review + Zap.
-3. **Agent Search:** Allows users to find and compare agents by trust score and location.
+## 3. MVP Scope (Hackathon Proof of Concept)
+1. **Agent Profile Page:** Displays Nostr ID, premium Btrust-inspired UI, live relay telemetry, and SWR caching.
+2. **Wallet Verification Flow:** An interactive Bitcoin signature challenge flow (simulated success for demo).
+3. **Trust Architecture:** Foundation laid for future Trust Score computation and Zap-backed reviews.
 
 ## 4. Judging Criteria Alignment (Olympic Gymnastics Rubric)
 - **Routine Difficulty:** Bitcoin-native reputation protocol on Nostr; Zap-gated economic Sybil resistance.

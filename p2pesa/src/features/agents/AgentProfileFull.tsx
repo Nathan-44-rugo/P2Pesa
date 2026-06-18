@@ -13,6 +13,7 @@ import PaymentMethodBadge from '@/components/ui/PaymentMethodBadge';
 import ReviewCard from '@/features/reviews/ReviewCard';
 import ReviewSubmitForm from '@/features/reviews/ReviewSubmitForm';
 import { WalletVerificationStub } from '@/features/agents/WalletVerificationStub';
+import { FiZap } from 'react-icons/fi';
 import { npubToPubkey, pubkeyToNpub } from '@/lib/nostr';
 import { fetchAgentReviewEvents } from '@/lib/reputationRelay';
 import { parseReviewEvent, calculateTrustScore } from '@/lib/reputation';
@@ -331,6 +332,24 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
           </div>
         </div>
       )}
+
+      {/* ── Ecosystem Verification ── */}
+      <div className="bg-brand-teal/5 border border-brand-teal/20 rounded-2xl p-4 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
+          <FiZap className="w-5 h-5" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-brand-teal">
+              Pontmore Protocol Interoperability
+            </p>
+            <span className="text-[10px] bg-brand-teal/20 text-brand-teal px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Active</span>
+          </div>
+          <p className="text-xs text-brand-muted mt-0.5 leading-relaxed">
+            This agent profile automatically ingests verified swap attestations from the Pontmore protocol (Kind 30000). Reputation is portable across all P2Pesa-compatible relays.
+          </p>
+        </div>
+      </div>
 
       {/* ── Reviews ── */}
       <div className="space-y-4">

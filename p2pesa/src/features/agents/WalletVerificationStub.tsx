@@ -110,9 +110,6 @@ export function WalletVerificationStub({
       <div className="flex items-center gap-2 mb-4">
         <SiBitcoin className="w-4 h-4 text-brand-orange" />
         <h3 className="text-white font-semibold text-sm tracking-tight uppercase font-mono-tech">Verify Wallet Ownership</h3>
-        <span className="ml-auto text-[9px] font-mono-tech text-brand-orange bg-brand-orange/5 border border-brand-orange/20 px-2 py-0.5 rounded">
-          STORY 1.2 — FRANCIS
-        </span>
       </div>
 
       <p className="text-brand-muted text-xs leading-relaxed mb-5">
