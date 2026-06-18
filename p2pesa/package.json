@@ -1,11 +1,10 @@
 {
   "name": "p2pesa",
   "version": "0.1.0",
-  "types": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest --passWithNoTests",
@@ -15,7 +14,7 @@
     "@nostr-dev-kit/ndk": "^2.10.0",
     "bitcoinjs-message": "^2.2.0",
     "buffer": "^6.0.3",
-    "next": "^16.2.9",
+    "next": "14.2.5",
     "nostr-tools": "^2.7.1",
     "react": "^18",
     "react-dom": "^18",
