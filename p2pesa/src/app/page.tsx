@@ -1,20 +1,14 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
+import Link from 'next/link';
 import { NostrLoginButton } from '@/features/agents/NostrLoginButton';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
-import { FiZap } from 'react-icons/fi';
+import { FiZap, FiSearch, FiUser } from 'react-icons/fi';
 
 export default function HomePage() {
   const { auth } = useNostrAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (auth.status === 'authenticated' && auth.npub) {
-      router.push(`/profile/${auth.npub}`);
-    }
-  }, [auth.status, auth.npub, router]);
+  const isAuthenticated = auth.status === 'authenticated' && !!auth.npub;
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center py-12">
@@ -37,7 +31,26 @@ export default function HomePage() {
         </blockquote>
 
         <div className="flex flex-col items-center gap-6">
-          <NostrLoginButton />
+          {isAuthenticated ? (
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <Link
+                href="/search"
+                className="flex items-center gap-2 px-5 py-2.5 rounded bg-brand-orange text-black font-semibold text-sm hover:bg-brand-orange/90 transition-colors"
+              >
+                <FiSearch className="w-4 h-4" />
+                <span>Browse Agents</span>
+              </Link>
+              <Link
+                href={`/profile/${auth.npub}`}
+                className="flex items-center gap-2 px-5 py-2.5 rounded border border-brand-border bg-brand-surface text-white font-semibold text-sm hover:border-brand-orange/60 transition-colors"
+              >
+                <FiUser className="w-4 h-4 text-brand-orange" />
+                <span>My Profile</span>
+              </Link>
+            </div>
+          ) : (
+            <NostrLoginButton />
+          )}
 
           <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-brand-muted text-xs font-mono-tech">
             <div className="flex items-center gap-2">

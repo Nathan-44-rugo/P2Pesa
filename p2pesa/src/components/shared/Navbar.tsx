@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
-import { FiZap, FiLogOut, FiUser } from 'react-icons/fi';
+import { FiZap, FiLogOut, FiUser, FiSearch } from 'react-icons/fi';
 import { RelayStatus } from './RelayStatus';
 
 export function Navbar() {
@@ -23,6 +23,15 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-3">
+          <Link
+            href="/search"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono-tech uppercase tracking-wider text-brand-muted border border-brand-border bg-brand-surface hover:border-brand-orange/60 hover:text-brand-orange transition-colors"
+            title="Find Agents"
+          >
+            <FiSearch className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Discover</span>
+          </Link>
+
           <button
             onClick={toggleDemoMode}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono-tech uppercase tracking-wider transition-all duration-300 border ${

@@ -182,4 +182,46 @@ p2pesa/
 
 ---
 
-_Last updated: 2026-06-18 by Rico/Daisy merge resolution._
+## 🔧 Build Stabilization & Deploy Fixes (Francis) — 2026-06-18
+
+### Build unblocked
+The manifest had been bumped to `next@^16.2.9` with a `next build --webpack` flag, but the installed/locked version was `next@14.2.5` (which has no `--webpack` flag), so `npm run dev` and `npm run build` both failed.
+
+- Pinned `next` to `14.2.5` (matches lockfile + installed tree).
+- Removed the unsupported `--webpack` flag from the `dev`/`build` scripts.
+- Removed a bogus `"types": "module"` field (would have broken the CommonJS `next.config.js`).
+- Fixed `.eslintrc.json` — dropped `next/typescript` (not present in `eslint-config-next@14`).
+- Deleted dead duplicate `src/app/profile/[npub]/page_full.tsx` (byte-identical to `page.tsx`).
+
+Result: `npm test` → 20/20 passing, `npm run build` → clean (exit 0).
+
+### Vercel navigation fix
+On the deployed Vercel build, after Nostr login users were trapped on their own profile — `/search` and other agent profiles were unreachable through the UI.
+
+- **Cause 1:** `Navbar` had no link to `/search` (discovery only reachable by typing the URL).
+- **Cause 2:** the landing page force-redirected authenticated users to their own profile, so even the logo bounced them back.
+- **Cause 3 (already resolved in merge):** the profile route now resolves Nostr data client-side (`'use client'` + `useParams` + `useEffect`), so real profiles load on Vercel (serverless functions can't hold open relay WebSockets).
+
+Fixes:
+- Added an always-visible **"Discover"** link to the Navbar → `/search`.
+- Replaced the landing-page redirect with post-login CTAs: **"Browse Agents"** (→ `/search`) and **"My Profile"**.
+
+Key files:
+- `p2pesa/package.json`
+- `p2pesa/.eslintrc.json`
+- `p2pesa/src/components/shared/Navbar.tsx`
+- `p2pesa/src/app/page.tsx`
+- `p2pesa/src/app/profile/[npub]/page.tsx`
+
+### Documentation
+- Rewrote `p2pesa/README.md`: open source Bitcoin++ framing, "Why It Matters", Features, Contributing, and License sections. No emojis; em dashes replaced with hyphens.
+- Updated this `project-progress.md` with the build stabilization and deploy fix log.
+
+### Known follow-ups (post-demo)
+- Orphaned components `ReviewSubmissionForm.tsx` and `TrustScorePanel.tsx` are unused (the app uses Daisy's `ReviewSubmitForm`) - decide with Rico whether to wire in or remove.
+- `npm audit` reports 30 vulnerabilities (transitive) - review post-hackathon.
+- README references an MIT license; add a `LICENSE` file at the repo root if not already present.
+
+---
+
+_Last updated: 2026-06-18 by Francis - build stabilization, Vercel navigation fixes, and docs/README refresh._
