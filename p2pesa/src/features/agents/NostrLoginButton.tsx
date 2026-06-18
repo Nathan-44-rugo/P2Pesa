@@ -1,14 +1,8 @@
 'use client';
 
-/**
- * src/features/agents/NostrLoginButton.tsx
- *
- * "Log in with Nostr" button — NIP-07 extension login trigger.
- * Displays different states: idle, loading, error.
- */
-
 import React from 'react';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
+import { FiZap, FiLoader, FiAlertCircle } from 'react-icons/fi';
 
 interface NostrLoginButtonProps {
   onSuccess?: () => void;
@@ -31,73 +25,66 @@ export function NostrLoginButton({
   const isLoading = auth.status === 'loading';
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-3 w-full max-w-sm">
       <button
         id="nostr-login-btn"
         onClick={handleLogin}
         disabled={isLoading}
         className={`
-          group relative flex items-center gap-3 px-8 py-4 rounded-2xl
-          bg-gradient-to-r from-brand-orange to-amber-500
-          text-white font-semibold text-lg
-          shadow-lg shadow-brand-orange/30
-          hover:shadow-xl hover:shadow-brand-orange/50
-          hover:scale-105 active:scale-95
-          disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100
-          transition-all duration-300 ease-out
+          w-full flex items-center justify-center gap-2.5 px-6 py-3.5 rounded
+          bg-brand-orange text-white font-mono-tech font-bold text-sm uppercase tracking-wider
+          transition-colors duration-200
+          hover:bg-brand-orange/90 active:bg-brand-orange/85
+          disabled:opacity-50 disabled:cursor-not-allowed
           ${className}
         `}
         aria-label="Log in with Nostr browser extension"
       >
-        {/* Nostr icon (lightning bolt + "N" motif) */}
-        <span className="text-2xl" aria-hidden="true">
-          {isLoading ? '⏳' : '⚡'}
-        </span>
+        {isLoading ? (
+          <FiLoader className="w-4 h-4 animate-spin text-white" />
+        ) : (
+          <FiZap className="w-4 h-4 text-white" />
+        )}
 
         <span>
           {isLoading ? 'Connecting...' : 'Log in with Nostr'}
         </span>
-
-        {/* Animated shine effect */}
-        <span
-          className="absolute inset-0 rounded-2xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-hidden="true"
-        />
       </button>
 
-      {/* Error message */}
       {auth.status === 'error' && auth.error && (
         <div
           role="alert"
-          className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2 max-w-xs text-center animate-fade-in"
+          className="w-full flex items-start gap-2.5 text-xs text-red-400 bg-red-950/20 border border-red-900/30 rounded p-3 text-left animate-fade-in font-mono-tech"
         >
-          {auth.error.includes('NIP-07') ? (
-            <>
-              No Nostr extension found.{' '}
-              <a
-                href="https://getalby.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-red-300"
-              >
-                Install Alby
-              </a>
-            </>
-          ) : (
-            auth.error
-          )}
+          <FiAlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            {auth.error.includes('NIP-07') ? (
+              <span>
+                NIP-07 extension missing.{' '}
+                <a
+                  href="https://getalby.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-red-300"
+                >
+                  Install Alby
+                </a>
+              </span>
+            ) : (
+              <span>{auth.error}</span>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Helper text */}
       {auth.status === 'idle' && (
-        <p className="text-brand-muted text-sm text-center">
-          Requires a NIP-07 browser extension (e.g.{' '}
+        <p className="text-brand-muted text-[11px] font-mono-tech text-center tracking-wide leading-relaxed">
+          Requires a NIP-07 browser utility (e.g.{' '}
           <a
             href="https://getalby.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-brand-orange hover:underline"
+            className="text-brand-orange hover:underline font-semibold"
           >
             Alby
           </a>

@@ -1,58 +1,53 @@
 'use client';
 
-/**
- * src/components/shared/Navbar.tsx
- *
- * Top navigation bar — shows logo + auth state (login button or user npub)
- */
-
 import React from 'react';
 import Link from 'next/link';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
+import { FiZap, FiLogOut, FiUser } from 'react-icons/fi';
 
 export function Navbar() {
   const { auth, logout } = useNostrAuth();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-brand-border bg-brand-dark/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 border-b border-brand-border bg-brand-dark/90 backdrop-blur-md">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <span className="text-2xl">⚡</span>
-          <span className="font-bold text-xl text-white group-hover:text-brand-orange transition-colors">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <FiZap className="w-5 h-5 text-brand-orange transition-transform group-hover:scale-105" />
+          <span className="font-bold text-lg text-white tracking-tight group-hover:text-brand-orange transition-colors">
             P2Pesa
           </span>
-          <span className="hidden sm:block text-xs text-brand-muted mt-1">
-            Trust on Bitcoin rails
+          <span className="hidden sm:inline-block text-[10px] text-brand-muted font-mono-tech border-l border-brand-border pl-2.5 mt-0.5 uppercase tracking-wider">
+            Reputation Rails
           </span>
         </Link>
 
-        {/* Auth state */}
         {auth.status === 'authenticated' && auth.npub ? (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Link
               href={`/profile/${auth.npub}`}
-              className="flex items-center gap-2 bg-brand-surface border border-brand-border rounded-xl px-3 py-1.5 hover:border-brand-orange transition-all"
+              className="flex items-center gap-2 bg-brand-surface border border-brand-border rounded px-3 py-1.5 hover:border-brand-orange/60 transition-colors"
             >
-              <span className="text-brand-orange text-sm">⚡</span>
-              <span className="text-brand-light text-sm font-mono">
-                {auth.npub.slice(0, 12)}...
+              <FiUser className="w-3.5 h-3.5 text-brand-orange" />
+              <span className="text-white text-xs font-mono-tech">
+                {auth.npub.slice(0, 8)}...{auth.npub.slice(-4)}
               </span>
             </Link>
             <button
               onClick={logout}
-              className="text-brand-muted text-sm hover:text-red-400 transition-colors"
+              className="flex items-center gap-1.5 text-brand-muted text-xs hover:text-red-400 font-mono-tech uppercase tracking-wider transition-colors"
               aria-label="Log out"
             >
-              Logout
+              <FiLogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         ) : (
           <Link
             href="/"
-            className="text-sm text-brand-orange border border-brand-orange/30 px-3 py-1.5 rounded-xl hover:bg-brand-orange/10 transition-all"
+            className="flex items-center gap-1.5 text-xs font-mono-tech uppercase tracking-wider text-brand-orange border border-brand-orange/30 rounded px-3 py-1.5 hover:bg-brand-orange/5 transition-colors"
           >
-            ⚡ Login
+            <FiZap className="w-3.5 h-3.5" />
+            <span>Login</span>
           </Link>
         )}
       </div>

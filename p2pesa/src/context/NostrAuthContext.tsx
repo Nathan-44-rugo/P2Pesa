@@ -1,28 +1,19 @@
 'use client';
 
-/**
- * src/context/NostrAuthContext.tsx
- *
- * React Context for Nostr authentication state.
- * Wraps the entire app; consumed via useNostrAuth() hook.
- */
-
 import React, {
   createContext,
   useContext,
   useState,
   useCallback,
+  useEffect,
   ReactNode,
 } from 'react';
-import type { AuthState, NostrProfile } from '@/types/nostr';
+import type { AuthState } from '@/types/nostr';
 import {
   loginWithNip07,
   signOut as nostrSignOut,
-  pubkeyToNpub,
 } from '@/lib/nostr';
 import { fetchNostrProfile } from '@/lib/nostrProfile';
-
-// --- Context Shape ---
 
 interface NostrAuthContextValue {
   auth: AuthState;
@@ -40,8 +31,6 @@ const defaultAuth: AuthState = {
 
 const NostrAuthContext = createContext<NostrAuthContextValue | null>(null);
 
-// --- Provider ---
-
 export function NostrAuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>(defaultAuth);
 
@@ -50,8 +39,8 @@ export function NostrAuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const { pubkey, npub } = await loginWithNip07();
+      localStorage.setItem('p2pesa_active_pubkey', pubkey);
 
-      // Immediately set authenticated with basic info while profile loads
       setAuth({
         status: 'authenticated',
         pubkey,
@@ -60,7 +49,6 @@ export function NostrAuthProvider({ children }: { children: ReactNode }) {
         error: null,
       });
 
-      // Enrich with Kind 0 profile data
       const result = await fetchNostrProfile(pubkey);
       if (result.data) {
         setAuth((prev) => ({
@@ -70,7 +58,7 @@ export function NostrAuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Login failed';
+        err instanceof Error ? err.message : 'Authentication failed';
       setAuth({
         status: 'error',
         pubkey: null,
@@ -82,9 +70,27 @@ export function NostrAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    localStorage.removeItem('p2pesa_active_pubkey');
     nostrSignOut();
     setAuth(defaultAuth);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const savedPubkey = localStorage.getItem('p2pesa_active_pubkey');
+    if (savedPubkey && auth.status === 'idle') {
+      const timer = setTimeout(() => {
+        if ('nostr' in window) {
+          login().catch(() => {
+            localStorage.removeItem('p2pesa_active_pubkey');
+          });
+        }
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [login, auth.status]);
 
   return (
     <NostrAuthContext.Provider value={{ auth, login, logout }}>
@@ -93,12 +99,6 @@ export function NostrAuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// --- Hook ---
-
-/**
- * useNostrAuth — access authentication state and login/logout functions.
- * Must be used inside NostrAuthProvider.
- */
 export function useNostrAuthContext(): NostrAuthContextValue {
   const ctx = useContext(NostrAuthContext);
   if (!ctx) {

@@ -1,18 +1,36 @@
-/**
- * src/lib/nostrProfile.ts
- *
- * Fetches and parses Kind 0 (profile metadata) events from Nostr relays.
- * Architecture boundary: all relay queries for profiles live here.
- */
-
 import { getNdk, connectNdk } from '@/lib/nostr';
 import { nip19 } from 'nostr-tools';
 import type { NostrProfile, ApiResponse } from '@/types/nostr';
 
-/**
- * Parses the content field of a Kind 0 Nostr event into a NostrProfile.
- * Returns null if parsing fails (graceful degradation).
- */
+const CACHE_PREFIX = 'p2pesa_profile_';
+const CACHE_TTL = 1000 * 60 * 60 * 24;
+
+function getCachedProfile(pubkey: string): NostrProfile | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const cached = localStorage.getItem(`${CACHE_PREFIX}${pubkey}`);
+    if (!cached) return null;
+
+    const parsed = JSON.parse(cached) as { profile: NostrProfile; timestamp: number };
+    if (Date.now() - parsed.timestamp > CACHE_TTL) {
+      return null;
+    }
+    return parsed.profile;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedProfile(pubkey: string, profile: NostrProfile): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(
+      `${CACHE_PREFIX}${pubkey}`,
+      JSON.stringify({ profile, timestamp: Date.now() })
+    );
+  } catch {}
+}
+
 export function parseKind0Content(
   pubkey: string,
   contentJson: string
@@ -25,7 +43,7 @@ export function parseKind0Content(
       pubkey,
       npub,
       name: data.name ?? undefined,
-      display_name: data.display_name ?? data.display_name ?? undefined,
+      displayName: data.display_name ?? data.displayName ?? undefined,
       picture: data.picture ?? undefined,
       about: data.about ?? undefined,
       website: data.website ?? undefined,
@@ -37,34 +55,39 @@ export function parseKind0Content(
   }
 }
 
-/**
- * Fetches the Kind 0 profile event for a given pubkey from connected relays.
- * Returns the most recent profile found, or an error response.
- */
 export async function fetchNostrProfile(
   pubkey: string
 ): Promise<ApiResponse<NostrProfile>> {
+  const cached = getCachedProfile(pubkey);
+
+  if (cached) {
+    silentBackgroundFetch(pubkey);
+    return { data: cached, error: null };
+  }
+
+  return fetchAndCacheDirect(pubkey);
+}
+
+async function fetchAndCacheDirect(pubkey: string): Promise<ApiResponse<NostrProfile>> {
   try {
     const ndk = await connectNdk();
-
     const event = await ndk.fetchEvent({
       kinds: [0],
       authors: [pubkey],
     });
 
     if (!event) {
-      return {
-        data: {
-          pubkey,
-          npub: nip19.npubEncode(pubkey),
-          name: undefined,
-          display_name: undefined,
-          picture: undefined,
-          about: undefined,
-          website: undefined,
-        },
-        error: null,
+      const fallbackProfile: NostrProfile = {
+        pubkey,
+        npub: nip19.npubEncode(pubkey),
+        name: undefined,
+        displayName: undefined,
+        picture: undefined,
+        about: undefined,
+        website: undefined,
       };
+      setCachedProfile(pubkey, fallbackProfile);
+      return { data: fallbackProfile, error: null };
     }
 
     const profile = parseKind0Content(pubkey, event.content);
@@ -72,6 +95,7 @@ export async function fetchNostrProfile(
       return { data: null, error: 'Failed to parse profile metadata' };
     }
 
+    setCachedProfile(pubkey, profile);
     return { data: profile, error: null };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
@@ -79,14 +103,14 @@ export async function fetchNostrProfile(
   }
 }
 
-/**
- * Gets a human-readable display name for a profile.
- * Priority: display_name > name > truncated npub
- */
+function silentBackgroundFetch(pubkey: string): void {
+  fetchAndCacheDirect(pubkey).catch(() => {});
+}
+
 export function getDisplayName(profile: NostrProfile): string {
   return (
-    profile.display_name ??
+    profile.displayName ??
     profile.name ??
-    `${profile.npub.slice(0, 12)}...`
+    `${profile.npub.slice(0, 8)}...${profile.npub.slice(-4)}`
   );
 }
