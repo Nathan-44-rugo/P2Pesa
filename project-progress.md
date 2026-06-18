@@ -177,5 +177,5 @@ p2pesa/
 - **NIP-57 (Zaps):** https://github.com/nostr-protocol/nips/blob/master/57.md (Rico — Story 2.1)
 
 ---
-
+_Last updated: 2026-06-18 by Nathan (Story 1.1 complete — handoff to Francis)_
 _Last updated: 2026-06-18 by Francis (Story 1.2 implemented — handoff to Rico)_
