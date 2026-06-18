@@ -104,6 +104,35 @@ npm run dev   # → http://localhost:3000
 
 ---
 
+## 🚧 Story 2.1 & 3.1 — COMPLETE (Daisy)
+
+**Status:** Frontend & UI layer fully implemented and integrated
+
+### What was built:
+
+- **UI System:** TrustScoreRing, StarRating, ZapBadge, PaymentMethodBadge (reusable design system components)
+- **Agent Experience:** AgentCard + AgentProfileFull combining Nostr identity, wallet status, trust score, and reviews
+- **Reputation UI:** ReviewCard + ReviewSubmitForm (zap-gated review flow ready for Nostr + Lightning integration)
+- **Search System:** AgentSearchFilter + `/search` page with filtering, sorting, and mock dataset integration
+- **Mock Data Layer:** realistic Nairobi agents + zap-enabled reviews for full demo flow
+
+### Integration:
+- Fully connected to Nostr auth system, Bitcoin verification layer, and shared TypeScript types
+- Follows feature-based architecture (`/features`, `/lib`, `/components`)
+- Next.js 14 App Router compatible and type-safe
+
+### Outcome:
+Delivered the complete **user-facing shell of P2Pesa**, enabling:
+> Login → Discover Agents → View Profiles → Verify Trust → Submit Zap-backed Reviews
+
+### Status:
+- UI/UX layer: ✅ Complete  
+- Search + profile flows: ✅ Complete  
+- Review system (frontend): ✅ Complete  
+- Backend wiring (Rico layer): ⏳ Pending
+
+---
+
 ## 🏗️ Architecture Reference
 
 See `bmad_output/planning-artifacts/architecture.md` for full details.
