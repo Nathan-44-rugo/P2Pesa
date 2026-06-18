@@ -164,6 +164,7 @@ p2pesa/
 
 ## 🔗 Resources
 
+- **Nostr Setup Guide:** `docs/nostr-setup-guide.md`
 - **PRD:** `bmad_output/planning-artifacts/prd.md`
 - **Architecture:** `bmad_output/planning-artifacts/architecture.md`
 - **Epics & Stories:** `bmad_output/planning-artifacts/epics.md`

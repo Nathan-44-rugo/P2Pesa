@@ -17,7 +17,8 @@ npm run dev
 # → http://localhost:3000
 ```
 
-You'll need a [NIP-07 browser extension](https://getalby.com/) (Alby) to test Nostr login.
+To test the application, you must configure a self-sovereign Nostr identity. 
+**Please follow our comprehensive [Nostr Setup Guide](../docs/nostr-setup-guide.md) before logging in.**
 
 ---
 
