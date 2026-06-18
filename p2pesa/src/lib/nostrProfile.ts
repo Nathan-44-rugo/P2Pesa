@@ -25,7 +25,7 @@ export function parseKind0Content(
       pubkey,
       npub,
       name: data.name ?? undefined,
-      displayName: data.display_name ?? data.displayName ?? undefined,
+      display_name: data.display_name ?? data.display_name ?? undefined,
       picture: data.picture ?? undefined,
       about: data.about ?? undefined,
       website: data.website ?? undefined,
@@ -58,7 +58,7 @@ export async function fetchNostrProfile(
           pubkey,
           npub: nip19.npubEncode(pubkey),
           name: undefined,
-          displayName: undefined,
+          display_name: undefined,
           picture: undefined,
           about: undefined,
           website: undefined,
@@ -81,11 +81,11 @@ export async function fetchNostrProfile(
 
 /**
  * Gets a human-readable display name for a profile.
- * Priority: displayName > name > truncated npub
+ * Priority: display_name > name > truncated npub
  */
 export function getDisplayName(profile: NostrProfile): string {
   return (
-    profile.displayName ??
+    profile.display_name ??
     profile.name ??
     `${profile.npub.slice(0, 12)}...`
   );

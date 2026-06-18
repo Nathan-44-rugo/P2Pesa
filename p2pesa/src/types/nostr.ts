@@ -1,27 +1,19 @@
-/**
- * Shared TypeScript definitions for Nostr-related types.
- * Architecture pattern: types live in src/types/ and are imported by features and lib.
- */
+// Shared Nostr and P2Pesa domain types.
 
-/** Parsed Kind 0 profile metadata from a Nostr relay */
 export interface NostrProfile {
-  pubkey: string;
   npub: string;
+  pubkey: string;
   name?: string;
+  display_name?: string;
   displayName?: string;
-  picture?: string;
   about?: string;
+  picture?: string;
+  nip05?: string;
+  lud16?: string;
   website?: string;
-  lud16?: string; // Lightning address
-  nip05?: string; // NIP-05 verification
 }
 
-/** Auth state for the NIP-07 login flow */
-export type AuthStatus =
-  | 'idle'
-  | 'loading'
-  | 'authenticated'
-  | 'error';
+export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'error';
 
 export interface AuthState {
   status: AuthStatus;
@@ -31,7 +23,6 @@ export interface AuthState {
   error: string | null;
 }
 
-/** Bitcoin wallet verification state (used in Story 1.2 by Francis) */
 export type WalletVerificationStatus =
   | 'unverified'
   | 'pending'
@@ -39,21 +30,84 @@ export type WalletVerificationStatus =
   | 'failed';
 
 export interface WalletVerification {
-  status: WalletVerificationStatus;
   address?: string;
+  status: WalletVerificationStatus;
   balanceSats?: number;
   signature?: string;
-  verifiedAt?: number; // Unix timestamp
+  verifiedAt?: number;
 }
 
-/** Combined agent profile: Nostr identity + optional BTC verification */
 export interface AgentProfile {
-  nostr: NostrProfile;
-  wallet: WalletVerification;
-  trustScore?: number;
+  npub?: string;
+  nostr?: NostrProfile;
+  wallet?: WalletVerification;
+  nostrProfile?: NostrProfile;
+  walletVerification?: WalletVerification;
+  trustScore?: TrustScore;
+  reviews?: Review[];
+  location?: string;
+  languages?: string[];
+  paymentMethods?: string[];
+}
+
+export interface TrustScore {
+  // Daisy UI/demo score shape.
+  total?: number;
+  breakdown?: {
+    walletScore: number;
+    reviewScore: number;
+    attestationScore: number;
+    disputePenalty: number;
+    accountAge: number;
+  };
+  reviewCount?: number;
+  tradeCount?: number;
+  disputeCount?: number;
+  zapVolumeSats?: number;
+  computedAt?: number;
+
+  // Rico relay/reputation score shape.
+  score?: number;
+  verifiedTradeCount?: number;
+  zapBackedReviewCount?: number;
+  averageRating?: number;
+  totalZapSats?: number;
+  lastUpdated?: number | null;
 }
 
 export type ReviewRating = 1 | 2 | 3 | 4 | 5;
+
+export interface Review {
+  id: string;
+  agentNpub: string;
+  reviewerNpub: string;
+  reviewerProfile?: NostrProfile;
+  rating: ReviewRating;
+  content: string;
+  zapAmountSats?: number;
+  zapVerified: boolean;
+  createdAt: number;
+  nostrEventId?: string;
+}
+
+export interface ReviewSubmission {
+  agentNpub: string;
+  rating: ReviewRating;
+  content: string;
+  zapAmountSats: number;
+}
+
+export type SortOption = 'trust_score' | 'trade_count' | 'review_count' | 'newest';
+export type PaymentMethod = 'mpesa' | 'airtel_money' | 'bank_transfer' | 'cash';
+
+export interface AgentSearchFilters {
+  query: string;
+  minTrustScore: number;
+  paymentMethods: PaymentMethod[];
+  sortBy: SortOption;
+  location?: string;
+  minTradeCount?: number;
+}
 
 export interface NostrEvent {
   id?: string;
@@ -86,16 +140,6 @@ export interface AgentReview {
   createdAt: number;
 }
 
-export interface TrustScore {
-  score: number;
-  verifiedTradeCount: number;
-  zapBackedReviewCount: number;
-  averageRating: number;
-  totalZapSats: number;
-  lastUpdated: number | null;
-}
-
-/** Standard API response wrapper per architecture spec */
 export interface ApiResponse<T> {
   data: T | null;
   error: string | null;

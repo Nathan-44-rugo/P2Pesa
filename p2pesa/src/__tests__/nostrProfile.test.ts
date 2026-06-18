@@ -35,7 +35,7 @@ describe('parseKind0Content', () => {
     expect(profile).not.toBeNull();
     expect(profile!.pubkey).toBe(MOCK_PUBKEY);
     expect(profile!.name).toBe('Alice Agent');
-    expect(profile!.displayName).toBe('Alice the Trusted');
+    expect(profile!.display_name).toBe('Alice the Trusted');
     expect(profile!.picture).toBe('https://example.com/alice.jpg');
     expect(profile!.about).toBe('Reliable Bitcoin agent in Nairobi');
     expect(profile!.website).toBe('https://alice.btc');
@@ -52,7 +52,7 @@ describe('parseKind0Content', () => {
 
     expect(profile).not.toBeNull();
     expect(profile!.name).toBe('Bob');
-    expect(profile!.displayName).toBeUndefined();
+    expect(profile!.display_name).toBeUndefined();
     expect(profile!.picture).toBeUndefined();
     expect(profile!.about).toBeUndefined();
     expect(profile!.lud16).toBeUndefined();
@@ -76,18 +76,18 @@ describe('parseKind0Content', () => {
     expect(profile!.name).toBeUndefined();
   });
 
-  it('supports both display_name and displayName fields', () => {
+  it('supports both display_name and display_name fields', () => {
     const withSnakeCase = parseKind0Content(
       MOCK_PUBKEY,
       JSON.stringify({ display_name: 'Snake Case' })
     );
-    expect(withSnakeCase!.displayName).toBe('Snake Case');
+    expect(withSnakeCase!.display_name).toBe('Snake Case');
 
     const withCamelCase = parseKind0Content(
       MOCK_PUBKEY,
-      JSON.stringify({ displayName: 'Camel Case' })
+      JSON.stringify({ display_name: 'Camel Case' })
     );
-    expect(withCamelCase!.displayName).toBe('Camel Case');
+    expect(withCamelCase!.display_name).toBe('Camel Case');
   });
 });
 
@@ -97,12 +97,12 @@ describe('getDisplayName', () => {
     npub: 'npub1abcdef1234567890test',
   };
 
-  it('prefers displayName over name', () => {
-    const profile = { ...baseProfile, displayName: 'Display', name: 'Name' };
+  it('prefers display_name over name', () => {
+    const profile = { ...baseProfile, display_name: 'Display', name: 'Name' };
     expect(getDisplayName(profile)).toBe('Display');
   });
 
-  it('falls back to name if no displayName', () => {
+  it('falls back to name if no display_name', () => {
     const profile = { ...baseProfile, name: 'Just Name' };
     expect(getDisplayName(profile)).toBe('Just Name');
   });
