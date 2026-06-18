@@ -164,18 +164,18 @@ For teams pursuing the Pontmore prize or deeper infrastructure:
 
 ## MVP Scope (Hackathon Build)
 
-Given time constraints, the MVP focuses on:
+Given time constraints, the MVP focuses on a functional Proof of Concept (PoC) of the core identity and verification flow:
 
-1. **Agent profile page** — Nostr login, display key, wallet verification flow
-2. **Trust score display** — computed from mock + real on-chain data
-3. **Review submission** — sign and publish a Nostr review event for an agent
-4. **Agent search/list** — browse and compare agents by score
-5. **Demo narrative** — one complete user journey from "find agent" to "read their verified history"
+1. **Agent profile page** — Nostr login, display key, SWR caching, and active relay telemetry.
+2. **Wallet verification flow** — An interactive demo/stub of the Bitcoin message signing challenge.
+3. **Trust score display** — Architecture outline for the trust score and reputation components.
+4. **Demo narrative** — One complete user journey from "login with Nostr" to "verifying a Bitcoin wallet".
 
-Out of scope for MVP (design targets, not built):
-- Live swap integration with Pontmore
-- Full dispute resolution workflow
-- Mobile app
+Out of scope for this hackathon build (deferred to post-hackathon roadmap):
+- Live agent search and filtering directory.
+- Live review submission (Nostr event publishing).
+- Trust score computation from live on-chain mempool data (currently simulated).
+- Full dispute resolution workflow.
 
 ---
 

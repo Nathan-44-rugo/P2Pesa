@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FiZap, FiLogOut, FiUser } from 'react-icons/fi';
+import { RelayStatus } from './RelayStatus';
 
 export function Navbar() {
   const { auth, logout } = useNostrAuth();
@@ -16,9 +17,9 @@ export function Navbar() {
           <span className="font-bold text-lg text-white tracking-tight group-hover:text-brand-orange transition-colors">
             P2Pesa
           </span>
-          <span className="hidden sm:inline-block text-[10px] text-brand-muted font-mono-tech border-l border-brand-border pl-2.5 mt-0.5 uppercase tracking-wider">
-            Reputation Rails
-          </span>
+          <div className="hidden lg:flex items-center border-l border-brand-border ml-4 pl-4 h-6">
+            <RelayStatus />
+          </div>
         </Link>
 
         {auth.status === 'authenticated' && auth.npub ? (

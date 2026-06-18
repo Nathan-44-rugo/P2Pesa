@@ -25,9 +25,9 @@ P2Pesa is a decentralized reputation and verification platform for Bitcoin and m
 - **Pontmore:** Potential integration to ingest successful swap events as "Verified Trade" signals.
 
 ## MVP Scope
-1. **Agent Profile Page:** Displaying Nostr ID, verified BTC balance, and Zap-backed reviews.
-2. **Review Flow:** Allowing users to submit a review + Zap.
-3. **Agent Search:** Finding agents by trust score and location.
+1. **Agent Profile Page:** Displaying Nostr ID, live relay telemetry, and profile metadata.
+2. **Wallet Verification Flow:** An interactive Bitcoin signature challenge flow (simulated success for demo).
+3. **Trust Architecture:** Foundation laid for future Trust Score and Zap-backed review modules.
 
 ## Success Narrative
 "Bitcoin is trustless. But the people who onboard you to Bitcoin shouldn't have to be."
