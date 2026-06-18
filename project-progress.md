@@ -104,7 +104,7 @@ npm run dev   # → http://localhost:3000
 
 ---
 
-## 🚧 Story 2.1 & 3.1 — COMPLETE (Daisy)
+## ✅ Story 2.1 & 3.1 — COMPLETE (Daisy)
 
 **Status:** Frontend & UI layer fully implemented and integrated
 
