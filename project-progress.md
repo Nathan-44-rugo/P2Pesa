@@ -12,8 +12,8 @@
 |---|------|-------|-------|--------|
 | 1 | Nostr & Identity Lead ("The Soul") | **Nathan** | Story 1.1 — Nostr Authentication | ✅ **COMPLETE** |
 | 2 | Bitcoin & Verification Lead ("The Trust") | **Francis** | Story 1.2 — Bitcoin Wallet Verification | ✅ **IMPLEMENTED** (pending local run) |
-| 3 | Reputation & Protocol Lead ("The Brain") | **Rico** | Stories 2.1, 2.2 — Zap Reviews + Trust Score | ⏳ Waiting on Francis |
-| 4 | Frontend & UI Lead ("The Shell") | **Daisy** | Stories 2.1, 3.1 — Profile UI + Search | ⏳ Waiting on Rico |
+| 3 | Reputation & Protocol Lead ("The Brain") | **Rico** | Stories 2.1, 2.2 — Zap Reviews + Trust Score | ✅ **IMPLEMENTED** (ready for review) |
+| 4 | Frontend & UI Lead ("The Shell") | **Daisy** | Stories 2.1, 3.1 — Profile UI + Search | ⏳ Ready to continue from Rico |
 
 ---
 
@@ -104,6 +104,63 @@ npm run dev   # → http://localhost:3000
 
 ---
 
+## ✅ Stories 2.1 and 2.2 — IMPLEMENTED (Rico)
+
+**Goal:** Zap-gated review submission and trust score calculation for agent profiles.
+
+### What was built
+
+#### `p2pesa/src/lib/reputation.ts`
+- Added P2Pesa reputation contracts and pure logic:
+  - NIP-57 zap receipt parsing for kind `9735`.
+  - Agent-target validation via the `p` tag.
+  - Minimum zap backing threshold of 1 sat (`1000` millisats).
+  - P2Pesa review event creation using app-specific kind `1985`.
+  - Trust score calculation from verified wallet status plus zap-backed reviews.
+
+#### `p2pesa/src/lib/reputationRelay.ts`
+- Added lightweight relay behavior for Story 2.2:
+  - Signs review events through NIP-07 `window.nostr.signEvent`.
+  - Publishes review events to configured relays.
+  - Fetches review events by agent `p` tag from pinned/fallback relays.
+  - Deduplicates by event ID and tolerates relay fallback errors.
+
+#### `p2pesa/src/features/reviews/`
+- `ReviewSubmissionForm.tsx`: authenticated traders submit rating, comment, and NIP-57 zap receipt JSON.
+- `TrustScorePanel.tsx`: displays score, verified trades, zap-backed review count, average rating, zap sats, and last updated time.
+
+#### `p2pesa/src/app/profile/[npub]/page.tsx`
+- Integrated live trust score display.
+- Shows the verified review form only when an authenticated user views another agent profile.
+- Preserves Nathan profile flow and Francis deferred wallet verification flow.
+
+#### Tests
+- `p2pesa/src/__tests__/reputation.test.ts` covers zap receipt parsing, wrong-agent/wrong-kind rejection, review event creation/parsing, and trust score calculation.
+
+### Validation
+
+```bash
+cd p2pesa
+npm.cmd test -- --runInBand
+npm.cmd run build
+```
+
+Both passed on 2026-06-18.
+
+### MVP decisions
+- LNURL invoice creation is out of scope for Rico hackathon slice. The review form accepts a NIP-57 zap receipt JSON after payment.
+- Reputation remains portable in signed Nostr events; no centralized database or backend service was added.
+- Trust score is a bounded 0-100 composite for MVP/demo use and can be tuned later.
+
+### Handoff to Daisy
+- Daisy can now polish the profile UX around the review form and trust score panel.
+- Daisy can build search/sorting using the `TrustScore` type and `calculateTrustScore`.
+- Story artifacts:
+  - `bmad_output/implementation-artifacts/2-1-zap-gated-review-submission.md`
+  - `bmad_output/implementation-artifacts/2-2-trust-score-calculation.md`
+
+---
+
 ## 🏗️ Architecture Reference
 
 See `bmad_output/planning-artifacts/architecture.md` for full details.
@@ -135,25 +192,31 @@ p2pesa/
 │   ├── context/
 │   │   └── NostrAuthContext.tsx ← Auth state machine  [Nathan ✅]
 │   ├── features/
-│   │   └── agents/
-│   │       ├── NostrLoginButton.tsx       [Nathan ✅]
-│   │       ├── AgentProfileCard.tsx       [Nathan ✅]
-│   │       └── WalletVerificationStub.tsx [Francis 🔜 — implement TODOs]
+│   │   ├── agents/
+│   │   │   ├── NostrLoginButton.tsx       [Nathan ✅]
+│   │   │   ├── AgentProfileCard.tsx       [Nathan ✅]
+│   │   │   └── WalletVerificationStub.tsx [Francis ✅]
+│   │   └── reviews/
+│   │       ├── ReviewSubmissionForm.tsx   [Rico ✅]
+│   │       └── TrustScorePanel.tsx        [Rico ✅]
 │   ├── lib/
 │   │   ├── nostr.ts            ← NDK + NIP-07 login  [Nathan ✅]
 │   │   ├── nostrProfile.ts     ← Kind 0 fetch/parse  [Nathan ✅]
-│   │   └── bitcoin.ts          ← BTC verification    [Francis 🔜 — implement TODOs]
+│   │   ├── bitcoin.ts          ← BTC verification    [Francis ✅]
+│   │   ├── reputation.ts       ← Reviews + scoring   [Rico ✅]
+│   │   └── reputationRelay.ts  ← Review relays       [Rico ✅]
 │   ├── hooks/
 │   │   └── useNostrAuth.ts     [Nathan ✅]
 │   ├── types/
-│   │   └── nostr.ts            ← Shared types        [Nathan ✅]
+│   │   └── nostr.ts            ← Shared types        [Nathan/Rico ✅]
 │   ├── components/
 │   │   ├── ui/Badge.tsx        [Nathan ✅]
 │   │   ├── ui/Avatar.tsx       [Nathan ✅]
 │   │   └── shared/Navbar.tsx   [Nathan ✅]
 │   └── __tests__/
 │       ├── nostrProfile.test.ts   [Nathan ✅]
-│       └── useNostrAuth.test.tsx  [Nathan ✅]
+│       ├── useNostrAuth.test.tsx  [Nathan ✅]
+│       └── reputation.test.ts     [Rico ✅]
 ├── .env.local          ← Set relay URLs here
 ├── package.json
 ├── tsconfig.json
@@ -179,3 +242,4 @@ p2pesa/
 ---
 _Last updated: 2026-06-18 by Nathan (Story 1.1 complete — handoff to Francis)_
 _Last updated: 2026-06-18 by Francis (Story 1.2 implemented — handoff to Rico)_
+_Last updated: 2026-06-18 by Rico (Stories 2.1 and 2.2 implemented — handoff to Daisy)_

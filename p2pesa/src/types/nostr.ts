@@ -53,6 +53,48 @@ export interface AgentProfile {
   trustScore?: number;
 }
 
+export type ReviewRating = 1 | 2 | 3 | 4 | 5;
+
+export interface NostrEvent {
+  id?: string;
+  pubkey: string;
+  created_at: number;
+  kind: number;
+  tags: string[][];
+  content: string;
+  sig?: string;
+}
+
+export interface ZapReceipt {
+  id: string;
+  pubkey: string;
+  createdAt: number;
+  agentPubkey: string;
+  reviewerPubkey?: string;
+  amountMsats: number;
+  rawEvent: NostrEvent;
+}
+
+export interface AgentReview {
+  id?: string;
+  agentPubkey: string;
+  reviewerPubkey: string;
+  rating: ReviewRating;
+  comment: string;
+  zapReceiptId: string;
+  zapAmountMsats: number;
+  createdAt: number;
+}
+
+export interface TrustScore {
+  score: number;
+  verifiedTradeCount: number;
+  zapBackedReviewCount: number;
+  averageRating: number;
+  totalZapSats: number;
+  lastUpdated: number | null;
+}
+
 /** Standard API response wrapper per architecture spec */
 export interface ApiResponse<T> {
   data: T | null;
