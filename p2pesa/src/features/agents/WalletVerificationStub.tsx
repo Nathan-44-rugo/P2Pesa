@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import type { WalletVerification } from '@/types/nostr';
 import { generateChallenge, completeWalletVerification } from '@/lib/bitcoin';
-import { FiCheckCircle, FiLoader, FiLock, FiInfo, FiCopy, FiCheck, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiCheckCircle, FiLoader, FiLock, FiInfo, FiCopy, FiCheck, FiChevronDown, FiChevronUp, FiZap } from 'react-icons/fi';
 import { SiBitcoin } from 'react-icons/si';
+import { useNostrAuth } from '@/hooks/useNostrAuth';
 
 interface WalletVerificationStubProps {
   npub: string;
@@ -17,6 +18,7 @@ export function WalletVerificationStub({
   onVerified,
   className = '',
 }: WalletVerificationStubProps) {
+  const { demoMode } = useNostrAuth();
   const [step, setStep] = useState<'idle' | 'challenge' | 'signing' | 'done'>(
     'idle'
   );
@@ -39,6 +41,11 @@ export function WalletVerificationStub({
     setTimeout(() => setCopiedChallenge(false), 2000);
   };
 
+  const handleAutoFill = () => {
+    setAddress('bc1qdemoaddress123456789012345678901234567');
+    setSignature('demo-signature-verified');
+  };
+
   const handleSubmitSignature = async () => {
     if (!address.trim() || !signature.trim()) {
       setError('Please provide both your wallet address and signature.');
@@ -49,11 +56,24 @@ export function WalletVerificationStub({
     setError(null);
 
     try {
-      const result = await completeWalletVerification(
-        address.trim(),
-        signature.trim(),
-        challenge
-      );
+      let result;
+      if (demoMode && address.trim() === 'bc1qdemoaddress123456789012345678901234567') {
+        result = {
+          data: {
+            status: 'verified' as const,
+            address: address.trim(),
+            balanceSats: 4200000,
+            verifiedAt: Date.now(),
+          },
+          error: null,
+        };
+      } else {
+        result = await completeWalletVerification(
+          address.trim(),
+          signature.trim(),
+          challenge
+        );
+      }
 
       if (result.error || !result.data || result.data.status !== 'verified') {
         setError(result.error ?? 'Verification failed.');
@@ -110,8 +130,17 @@ export function WalletVerificationStub({
       )}
 
       {(step === 'challenge' || step === 'signing') && (
-        <div className="space-y-4 font-mono-tech text-xs">
-          <div>
+        <div className="space-y-4">
+          {demoMode && (
+            <button
+              onClick={handleAutoFill}
+              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono-tech uppercase tracking-wider hover:bg-amber-500/20 transition-all shadow-[0_0_12px_rgba(245,158,11,0.05)]"
+            >
+              <FiZap className="w-3.5 h-3.5 fill-current text-amber-400" />
+              <span>Auto-fill Demo Wallet & Signature</span>
+            </button>
+          )}
+          <div className="font-mono-tech text-xs">
             <div className="flex items-center justify-between mb-1">
               <label className="text-brand-muted text-[10px] uppercase font-bold tracking-wider block">
                 Message to Sign

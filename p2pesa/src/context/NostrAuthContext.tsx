@@ -19,6 +19,8 @@ interface NostrAuthContextValue {
   auth: AuthState;
   login: () => Promise<void>;
   logout: () => void;
+  demoMode: boolean;
+  toggleDemoMode: () => void;
 }
 
 const defaultAuth: AuthState = {
@@ -33,6 +35,23 @@ const NostrAuthContext = createContext<NostrAuthContextValue | null>(null);
 
 export function NostrAuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>(defaultAuth);
+  const [demoMode, setDemoMode] = useState<boolean>(false);
+
+  // Load from localStorage on client-side mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('p2pesa_demo_mode');
+      setDemoMode(saved === 'true');
+    }
+  }, []);
+
+  const toggleDemoMode = useCallback(() => {
+    setDemoMode((prev) => {
+      const next = !prev;
+      localStorage.setItem('p2pesa_demo_mode', String(next));
+      return next;
+    });
+  }, []);
 
   const login = useCallback(async () => {
     setAuth({ ...defaultAuth, status: 'loading' });
@@ -93,7 +112,7 @@ export function NostrAuthProvider({ children }: { children: ReactNode }) {
   }, [login, auth.status]);
 
   return (
-    <NostrAuthContext.Provider value={{ auth, login, logout }}>
+    <NostrAuthContext.Provider value={{ auth, login, logout, demoMode, toggleDemoMode }}>
       {children}
     </NostrAuthContext.Provider>
   );

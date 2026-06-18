@@ -23,7 +23,7 @@ type Step = 'compose' | 'zap' | 'submitting' | 'done' | 'error';
 const ZAP_PRESETS = [500, 1000, 2100, 5000];
 
 export default function ReviewSubmitForm({ agentNpub, agentName, onSubmitSuccess }: ReviewSubmitFormProps) {
-  const { auth } = useNostrAuth();
+  const { auth, demoMode } = useNostrAuth();
   const [step, setStep] = useState<Step>('compose');
   const [rating, setRating] = useState<ReviewRating | 0>(0);
   const [content, setContent] = useState('');
@@ -37,6 +37,26 @@ export default function ReviewSubmitForm({ agentNpub, agentName, onSubmitSuccess
 
   const canProceed = rating > 0 && content.trim().length >= MIN_CONTENT && zapReceiptJson.trim().length > 0;
   const finalZapAmount = customZap ? parseInt(customZap, 10) : zapAmount;
+
+  function handleGenerateDemoZap() {
+    const { data: agentPubkey } = npubToPubkey(agentNpub);
+    if (!agentPubkey) return;
+
+    const mockEvent = {
+      id: `demo_zap_${Math.random().toString(36).substring(2, 11)}`,
+      pubkey: auth.pubkey || 'demo_zap_sender_pubkey',
+      created_at: Math.floor(Date.now() / 1000),
+      kind: 9735,
+      tags: [
+        ['p', agentPubkey],
+        ['amount', String(finalZapAmount * 1000)],
+        ['P', auth.pubkey || '']
+      ],
+      content: ''
+    };
+
+    setZapReceiptJson(JSON.stringify(mockEvent, null, 2));
+  }
 
   async function handleZapAndSubmit() {
     if (!auth.pubkey) {
@@ -186,9 +206,20 @@ export default function ReviewSubmitForm({ agentNpub, agentName, onSubmitSuccess
 
             {/* NIP-57 Zap Receipt JSON */}
             <div className="space-y-1.5">
-              <label htmlFor="zap-receipt" className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
-                NIP-57 Zap Receipt JSON
-              </label>
+              <div className="flex justify-between items-center">
+                <label htmlFor="zap-receipt" className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
+                  NIP-57 Zap Receipt JSON
+                </label>
+                {demoMode && (
+                  <button
+                    type="button"
+                    onClick={handleGenerateDemoZap}
+                    className="text-[10px] text-amber-400 hover:text-amber-300 font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded transition-colors flex items-center gap-1"
+                  >
+                    <span>⚡ Generate Demo Zap</span>
+                  </button>
+                )}
+              </div>
               <textarea
                 id="zap-receipt"
                 rows={4}

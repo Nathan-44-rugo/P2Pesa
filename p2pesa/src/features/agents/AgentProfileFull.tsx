@@ -16,6 +16,32 @@ import { WalletVerificationStub } from '@/features/agents/WalletVerificationStub
 import { npubToPubkey, pubkeyToNpub } from '@/lib/nostr';
 import { fetchAgentReviewEvents } from '@/lib/reputationRelay';
 import { parseReviewEvent, calculateTrustScore } from '@/lib/reputation';
+import { useNostrAuth } from '@/hooks/useNostrAuth';
+
+const SEED_DEMO_REVIEWS = (agentNpub: string): Review[] => [
+  {
+    id: 'demo_rev_1',
+    agentNpub,
+    reviewerNpub: 'npub1reviewer999',
+    reviewerProfile: { npub: 'npub1reviewer999', pubkey: 'reviewer999', display_name: 'Alice K.', picture: 'https://api.dicebear.com/7.x/identicon/svg?seed=alice' },
+    rating: 5,
+    content: 'Excellent transaction. Quick response time and verified balance was correct.',
+    zapAmountSats: 2100,
+    zapVerified: true,
+    createdAt: Date.now() - 3600000 * 2,
+  },
+  {
+    id: 'demo_rev_2',
+    agentNpub,
+    reviewerNpub: 'npub1reviewer888',
+    reviewerProfile: { npub: 'npub1reviewer888', pubkey: 'reviewer888', display_name: 'Ben M.', picture: 'https://api.dicebear.com/7.x/identicon/svg?seed=ben' },
+    rating: 4,
+    content: 'Reliable mobile money swap. Slight delay but very honest.',
+    zapAmountSats: 1000,
+    zapVerified: true,
+    createdAt: Date.now() - 3600000 * 12,
+  }
+];
 
 interface AgentProfileFullProps {
   agent: AgentProfile;
@@ -59,11 +85,27 @@ function mapReviewToAgentReview(r: Review): AgentReview {
 }
 
 export default function AgentProfileFull({ agent, reviews, isOwnProfile = false }: AgentProfileFullProps) {
+  const { demoMode } = useNostrAuth();
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [localWalletVerification, setLocalWalletVerification] = useState<WalletVerification | undefined>(agent.walletVerification || agent.wallet);
   const [relayReviews, setRelayReviews] = useState<Review[]>([]);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const [relayError, setRelayError] = useState<string | null>(null);
+
+  const activeWalletVerification = useMemo(() => {
+    if (localWalletVerification && localWalletVerification.status === 'verified') {
+      return localWalletVerification;
+    }
+    if (demoMode) {
+      return {
+        status: 'verified' as const,
+        address: 'bc1qdemoaddress123456789012345678901234567',
+        balanceSats: 4200000,
+        verifiedAt: Date.now() - 86400000,
+      };
+    }
+    return localWalletVerification;
+  }, [localWalletVerification, demoMode]);
 
   const { nostrProfile, location, paymentMethods } = agent;
   const name = nostrProfile.display_name || nostrProfile.name || 'Unknown Agent';
@@ -97,21 +139,28 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
     };
   }, [agent.npub]);
 
+  const finalInitialReviews = useMemo(() => {
+    if (demoMode && reviews.length === 0) {
+      return SEED_DEMO_REVIEWS(agent.npub);
+    }
+    return reviews;
+  }, [reviews, demoMode, agent.npub]);
+
   const mergedReviews = useMemo<Review[]>(() => {
     const byId = new Map<string, Review>();
-    for (const r of reviews) {
+    for (const r of finalInitialReviews) {
       byId.set(r.id, r);
     }
     for (const r of relayReviews) {
       byId.set(r.id, r);
     }
     return Array.from(byId.values()).sort((a, b) => b.createdAt - a.createdAt);
-  }, [reviews, relayReviews]);
+  }, [finalInitialReviews, relayReviews]);
 
   const computedTrustScore = useMemo(() => {
     const agentReviews = mergedReviews.map(mapReviewToAgentReview);
-    return calculateTrustScore(agentReviews, localWalletVerification);
-  }, [mergedReviews, localWalletVerification]);
+    return calculateTrustScore(agentReviews, activeWalletVerification);
+  }, [mergedReviews, activeWalletVerification]);
 
   const score = computedTrustScore.score ?? 0;
   const trades = computedTrustScore.verifiedTradeCount ?? 0;
@@ -165,7 +214,7 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
                   {name.charAt(0).toUpperCase()}
                 </div>
               )}
-              {localWalletVerification?.status === 'verified' && (
+              {activeWalletVerification?.status === 'verified' && (
                 <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold border-2 border-gray-900" title="Bitcoin wallet verified">✓</span>
               )}
             </div>
@@ -224,31 +273,31 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
       {/* ── Wallet verification ── */}
       <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 space-y-3">
         <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Bitcoin wallet</h2>
-        {localWalletVerification ? (
+        {activeWalletVerification ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">Status</span>
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                localWalletVerification.status === 'verified'
+                activeWalletVerification.status === 'verified'
                   ? 'bg-green-500/10 text-green-400 border border-green-500/20'
                   : 'bg-gray-800 text-gray-500'
               }`}>
-                {localWalletVerification.status === 'verified' ? '✓ Cryptographically verified' : 'Unverified'}
+                {activeWalletVerification.status === 'verified' ? '✓ Cryptographically verified' : 'Unverified'}
               </span>
             </div>
-            {localWalletVerification.balanceSats != null && (
+            {activeWalletVerification.balanceSats != null && (
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">On-chain balance</span>
                 <span className="text-sm font-mono font-semibold text-amber-400">
-                  {formatBtc(localWalletVerification.balanceSats)} BTC
-                  <span className="text-gray-600 font-normal text-xs ml-1">({formatSats(localWalletVerification.balanceSats)} sats)</span>
+                  {formatBtc(activeWalletVerification.balanceSats)} BTC
+                  <span className="text-gray-600 font-normal text-xs ml-1">({formatSats(activeWalletVerification.balanceSats)} sats)</span>
                 </span>
               </div>
             )}
-            {localWalletVerification.address && (
+            {activeWalletVerification.address && (
               <div className="flex items-center justify-between gap-4">
                 <span className="text-xs text-gray-500 flex-shrink-0">Address</span>
-                <span className="text-[11px] font-mono text-gray-500 truncate">{localWalletVerification.address}</span>
+                <span className="text-[11px] font-mono text-gray-500 truncate">{activeWalletVerification.address}</span>
               </div>
             )}
             <p className="text-[11px] text-gray-600 pt-1">
@@ -261,7 +310,7 @@ export default function AgentProfileFull({ agent, reviews, isOwnProfile = false 
       </div>
 
       {/* ── Deferred Wallet Verification Stub for Own Profile ── */}
-      {isOwnProfile && localWalletVerification?.status !== 'verified' && (
+      {isOwnProfile && activeWalletVerification?.status !== 'verified' && (
         <WalletVerificationStub
           npub={agent.npub}
           onVerified={(v) => setLocalWalletVerification(v)}
