@@ -11,7 +11,7 @@
 | # | Role | Owner | Story | Status |
 |---|------|-------|-------|--------|
 | 1 | Nostr & Identity Lead ("The Soul") | **Nathan** | Story 1.1 — Nostr Authentication | ✅ **COMPLETE** |
-| 2 | Bitcoin & Verification Lead ("The Trust") | **Francis** | Story 1.2 — Bitcoin Wallet Verification | 🔜 **READY FOR YOU** |
+| 2 | Bitcoin & Verification Lead ("The Trust") | **Francis** | Story 1.2 — Bitcoin Wallet Verification | ✅ **IMPLEMENTED** (pending local run) |
 | 3 | Reputation & Protocol Lead ("The Brain") | **Rico** | Stories 2.1, 2.2 — Zap Reviews + Trust Score | ⏳ Waiting on Francis |
 | 4 | Frontend & UI Lead ("The Shell") | **Daisy** | Stories 2.1, 3.1 — Profile UI + Search | ⏳ Waiting on Rico |
 
@@ -55,50 +55,52 @@
 
 ---
 
-## 🔜 Story 1.2 — FOR FRANCIS (Bitcoin & Verification Lead)
+## ✅ Story 1.2 — IMPLEMENTED (Francis)
 
-**Your goal:** Implement the deferred Bitcoin wallet verification flow.
+**Goal:** Deferred Bitcoin wallet verification flow. Builds cleanly (`npm run build` ✓, type-check ✓).
 
-### What Nathan left for you
+### What was built
 
-#### Files to implement (search for `TODO` comments):
+#### `p2pesa/src/lib/bitcoin.ts` — 3 functions implemented (conform to Nathan's contracts):
+- `verifyBitcoinSignature(address, signature, challenge)` — real `bitcoinjs-message` verification. Legacy + SegWit (`checkSegwitAlways=true`). Returns `ApiResponse<boolean>`, never throws on bad input.
+- `fetchWalletBalance(address)` — Mempool.space `GET /address/:address`, returns net balance in **sats** (confirmed + mempool). Handles 400/404 + network errors.
+- `completeWalletVerification(address, signature, challenge)` — verifies signature first (offline), then fetches balance. Returns `ApiResponse<WalletVerification>` with `status: 'verified' | 'failed'`.
+- `generateChallenge` + `formatBtcBalance` — kept as Nathan authored them.
 
-1. **`p2pesa/src/lib/bitcoin.ts`** — Implement these 3 functions:
-   - `verifyBitcoinSignature(address, signature, challenge)` — verify the Bitcoin message signature
-   - `fetchWalletBalance(address)` — fetch balance from Mempool.space API
-   - `completeWalletVerification(address, signature, challenge)` — orchestrates both above
+#### `p2pesa/src/features/agents/WalletVerificationStub.tsx`
+- Stub simulation removed; now calls the real `completeWalletVerification`.
 
-2. **`p2pesa/src/features/agents/WalletVerificationStub.tsx`** — Replace the stub call in `handleSubmitSignature` with:
-   ```ts
-   import { completeWalletVerification } from '@/lib/bitcoin';
-   const result = await completeWalletVerification(address, signature, challenge);
-   ```
+#### Dependencies + config
+- Added `bitcoinjs-message` + `buffer` to `package.json`.
+- Added a **`Buffer` webpack polyfill** in `next.config.js` (webpack 5 / Next does not provide `Buffer` in the browser, which `bitcoinjs-message` needs).
 
-#### Install these extra libraries:
-```bash
-npm install bitcoinjs-message bitcoinjs-lib
-# OR use the lighter alternative:
-npm install @noble/secp256k1
+### MVP decisions
+- Address scope: **Legacy + SegWit** only (Taproot/BIP-322 out of scope).
+- Signing UX: **manual copy-paste** (address + base64 signature).
+- `npub` is embedded in the challenge string → binds signature to Nostr identity (anti-replay).
+
+#### Acceptance Criteria (epics.md Story 1.2) — all wired:
+- Logged-in via Nostr → profile → **Verify Wallet Ownership** ✓
+- Challenge shown to sign in wallet ✓
+- Signature verified client-side ✓
+- Balance fetched via Mempool.space ✓
+- UI shows **"Verified Balance: X BTC"** + **Active/Verified** ✓ (UI by Nathan, logic by Francis)
+
+#### Env (`.env.local`, optional — defaults to mainnet):
+```
+NEXT_PUBLIC_MEMPOOL_API=https://mempool.space/api
 ```
 
-#### Acceptance Criteria (from epics.md Story 1.2):
-- Given logged-in via Nostr → User navigates to "Post My Liquidity" → clicks "Verify Wallet Ownership"
-- App triggers Bitcoin wallet signature request  
-- User signs the challenge message with their Bitcoin wallet
-- App fetches balance via Mempool.space API
-- Profile UI updates to show **"Verified Balance: X BTC"** + **"Active/Verified"** badge
-
-#### Key architecture rules:
-- All Bitcoin/Mempool logic stays in `src/lib/bitcoin.ts`  
-- `completeWalletVerification` returns `ApiResponse<WalletVerification>` — types are already defined in `src/types/nostr.ts`
-- Relay/Mempool URL is in `.env.local`: `NEXT_PUBLIC_MEMPOOL_API=https://mempool.space/api`
-
-#### How to run the dev server:
+#### Run:
 ```bash
 cd p2pesa
-npm run dev
-# → http://localhost:3000
+npm install
+npm run dev   # → http://localhost:3000
 ```
+
+### Still TODO (Francis)
+- Unit tests for `verifyBitcoinSignature` (known address/message/signature triple).
+- Commit + push so Rico (Role 3) can build on verified data.
 
 ---
 
@@ -176,4 +178,4 @@ p2pesa/
 
 ---
 
-_Last updated: 2026-06-18 by Nathan (Story 1.1 complete — handoff to Francis)_
+_Last updated: 2026-06-18 by Francis (Story 1.2 implemented — handoff to Rico)_

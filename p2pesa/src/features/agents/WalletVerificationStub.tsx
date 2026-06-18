@@ -32,7 +32,7 @@
 
 import React, { useState } from 'react';
 import type { WalletVerification } from '@/types/nostr';
-import { generateChallenge } from '@/lib/bitcoin';
+import { generateChallenge, completeWalletVerification } from '@/lib/bitcoin';
 
 interface WalletVerificationStubProps {
   npub: string;
@@ -68,22 +68,19 @@ export function WalletVerificationStub({
     setError(null);
 
     try {
-      // TODO (Francis): Replace this stub call with actual verification
-      // import { completeWalletVerification } from '@/lib/bitcoin';
-      // const result = await completeWalletVerification(address, signature, challenge);
-      // if (result.error) { setError(result.error); setStep('challenge'); return; }
-      // onVerified?.(result.data!);
+      const result = await completeWalletVerification(
+        address.trim(),
+        signature.trim(),
+        challenge
+      );
 
-      // STUB: Simulate success for demo
-      await new Promise((r) => setTimeout(r, 1500));
-      const stubVerification: WalletVerification = {
-        status: 'verified',
-        address,
-        balanceSats: 210_000, // stub 0.0021 BTC
-        signature,
-        verifiedAt: Date.now(),
-      };
-      onVerified?.(stubVerification);
+      if (result.error || !result.data || result.data.status !== 'verified') {
+        setError(result.error ?? 'Verification failed.');
+        setStep('challenge');
+        return;
+      }
+
+      onVerified?.(result.data);
       setStep('done');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed');

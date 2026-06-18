@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@nostr-dev-kit/ndk": "^2.10.0",
+    "bitcoinjs-message": "^2.2.0",
+    "buffer": "^6.0.3",
     "next": "14.2.5",
     "nostr-tools": "^2.7.1",
     "react": "^18",

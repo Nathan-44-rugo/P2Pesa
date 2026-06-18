@@ -26,10 +26,28 @@
  *   - Bitcoin message signing: https://github.com/bitcoinjs/bitcoinjs-message
  */
 
+import bitcoinMessage from 'bitcoinjs-message';
 import type { ApiResponse, WalletVerification } from '@/types/nostr';
 
 const MEMPOOL_API =
   process.env.NEXT_PUBLIC_MEMPOOL_API ?? 'https://mempool.space/api';
+
+/** Relevant fields from GET /address/:address (Mempool.space). */
+interface MempoolAddressStats {
+  funded_txo_sum: number;
+  spent_txo_sum: number;
+  tx_count: number;
+}
+
+interface MempoolAddressResponse {
+  address: string;
+  chain_stats: MempoolAddressStats;
+  mempool_stats: MempoolAddressStats;
+}
+
+function asMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
 
 // ============================================================
 // STEP 1: Generate a challenge message for the agent to sign
@@ -69,17 +87,41 @@ export async function verifyBitcoinSignature(
   signature: string,
   challenge: string
 ): Promise<ApiResponse<boolean>> {
-  // TODO: Implement signature verification
-  // Example with bitcoinjs-message:
-  //   import bitcoinMessage from 'bitcoinjs-message';
-  //   const valid = bitcoinMessage.verify(challenge, address, signature);
-  //   return { data: valid, error: null };
-  console.warn('verifyBitcoinSignature: NOT YET IMPLEMENTED', {
-    address,
-    challenge,
-    signatureLength: signature.length,
-  });
-  return { data: null, error: 'Not implemented — see Story 1.2' };
+  if (!address?.trim()) {
+    return { data: null, error: 'A Bitcoin address is required.' };
+  }
+  if (!signature?.trim()) {
+    return { data: null, error: 'A signature is required.' };
+  }
+  if (!challenge?.trim()) {
+    return { data: null, error: 'A challenge message is required.' };
+  }
+
+  try {
+    // checkSegwitAlways=true validates bech32 (bc1q...) signatures whose header
+    // byte does not flag segwit, while still accepting legacy ("1...") + P2SH.
+    const valid = bitcoinMessage.verify(
+      challenge,
+      address.trim(),
+      signature.trim(),
+      undefined,
+      true
+    );
+
+    if (!valid) {
+      return {
+        data: null,
+        error: 'Signature does not match the provided address.',
+      };
+    }
+
+    return { data: true, error: null };
+  } catch (err) {
+    return {
+      data: null,
+      error: `Could not verify signature: ${asMessage(err)}`,
+    };
+  }
 }
 
 // ============================================================
@@ -103,14 +145,41 @@ export async function verifyBitcoinSignature(
 export async function fetchWalletBalance(
   address: string
 ): Promise<ApiResponse<number>> {
-  // TODO: Implement Mempool.space API call
-  // Example:
-  //   const res = await fetch(`${MEMPOOL_API}/address/${address}`);
-  //   const data = await res.json();
-  //   const balanceSats = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
-  //   return { data: balanceSats, error: null };
-  console.warn('fetchWalletBalance: NOT YET IMPLEMENTED', { address });
-  return { data: null, error: 'Not implemented — see Story 1.2' };
+  if (!address?.trim()) {
+    return { data: null, error: 'A Bitcoin address is required.' };
+  }
+
+  const url = `${MEMPOOL_API}/address/${encodeURIComponent(address.trim())}`;
+
+  try {
+    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+
+    if (!res.ok) {
+      if (res.status === 400 || res.status === 404) {
+        return {
+          data: null,
+          error: 'Address not found. Check the address and network.',
+        };
+      }
+      return {
+        data: null,
+        error: `Mempool.space request failed (HTTP ${res.status}).`,
+      };
+    }
+
+    const body = (await res.json()) as MempoolAddressResponse;
+    const confirmed =
+      body.chain_stats.funded_txo_sum - body.chain_stats.spent_txo_sum;
+    const unconfirmed =
+      body.mempool_stats.funded_txo_sum - body.mempool_stats.spent_txo_sum;
+
+    return { data: confirmed + unconfirmed, error: null };
+  } catch (err) {
+    return {
+      data: null,
+      error: `Could not reach Mempool.space: ${asMessage(err)}`,
+    };
+  }
 }
 
 // ============================================================
@@ -132,15 +201,33 @@ export async function completeWalletVerification(
   signature: string,
   challenge: string
 ): Promise<ApiResponse<WalletVerification>> {
-  // TODO: Wire together verifyBitcoinSignature + fetchWalletBalance
-  // Then return:
-  //   { data: { status: 'verified', address, balanceSats, signature, verifiedAt: Date.now() }, error: null }
-  console.warn('completeWalletVerification: NOT YET IMPLEMENTED');
+  // Step 1: verify the signature (cheap, offline) before any network call.
+  const sigCheck = await verifyBitcoinSignature(address, signature, challenge);
+  if (sigCheck.error || !sigCheck.data) {
+    return {
+      data: { status: 'failed' },
+      error: sigCheck.error ?? 'Signature is invalid.',
+    };
+  }
+
+  // Step 2: only on a valid signature, fetch the on-chain balance.
+  const balance = await fetchWalletBalance(address);
+  if (balance.error || balance.data === null) {
+    return {
+      data: { status: 'failed' },
+      error: balance.error ?? 'Could not fetch address balance.',
+    };
+  }
+
   return {
     data: {
-      status: 'unverified',
+      status: 'verified',
+      address: address.trim(),
+      balanceSats: balance.data,
+      signature: signature.trim(),
+      verifiedAt: Date.now(),
     },
-    error: 'Not implemented — see Story 1.2 for Francis',
+    error: null,
   };
 }
 
